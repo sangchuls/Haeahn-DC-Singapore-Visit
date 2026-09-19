@@ -1166,46 +1166,46 @@ const TR = {
   // D0 - 창이공항 도착
   d0_arrive:[
     {id:'grab', name:'Grab (추천)', badge:'추천', bc:'#1e7e5a', mode:'driving',
-     from:[1.3592,103.9896], to:[1.275835,103.8442824],
+     from:[1.3560743,103.9874748], to:[1.275835,103.8442824],
      body:'요금: SGD 25~35 (공항할증 포함) / 소요 30~45분\n4명 → GrabCar Max (7인승) 1대 선택\n기사에게: "Oasia Hotel Downtown, 100 Peck Seah Street, Tanjong Pagar, Singapore 079333"'},
     {id:'mrt',  name:'MRT (저렴)', badge:'저렴', bc:'#1255a0', mode:'transit',
-     from:[1.3592,103.9896], to:[1.275835,103.8442824],
+     from:[1.3560743,103.9874748], to:[1.275835,103.8442824],
      body:'요금: SGD 1.9~2.5 / 소요 35~40분\nT3 지하 1층 MRT역 → East West Line (EW29 창이공항)\n→ EW15 Tanjong Pagar역 하차 → 도보 8분\n단점: 짐 많을 때 불편'},
     {id:'taxi', name:'택시', badge:'편리', bc:'#c45e0a', mode:'driving',
-     from:[1.3592,103.9896], to:[1.275835,103.8442824],
+     from:[1.3560743,103.9874748], to:[1.275835,103.8442824],
      body:'요금: SGD 28~40 (미터+공항할증) / 소요 25~35분\n도착홀 Taxi 줄 탑승 → "Oasia Hotel Downtown, Tanjong Pagar"\n신용카드 대부분 가능'},
   ],
   // D4 - 호텔→공항
   d4_airport:[
     {id:'grab', name:'Grab (추천)', badge:'추천', bc:'#1e7e5a', mode:'driving',
-     from:[1.275835,103.8442824], to:[1.3592,103.9896],
+     from:[1.275835,103.8442824], to:[1.3560743,103.9874748],
      body:'GrabCar Max (7인승) → 목적지: "Singapore Changi Airport Terminal 3"\nSGD 22~30 / 약 20분 (새벽이라 막힘 없음) / <b>05:30 출발</b> 권장'},
     {id:'taxi', name:'택시', badge:'편리', bc:'#c45e0a', mode:'driving',
-     from:[1.275835,103.8442824], to:[1.3592,103.9896],
+     from:[1.275835,103.8442824], to:[1.3560743,103.9874748],
      body:'미터제 + 새벽할증(00:00~06:00 50%) + 공항할증 → SGD 30~40\n"Changi Airport Terminal 3" 탑승 시 전달\n약 20분. 새벽에는 호텔 프론트에 미리 콜택시 요청해두면 확실합니다'},
   ],
   // D2 - 호텔→MBS
   bus_hotel_mbs:[
     {id:'bus', name:'전용버스', badge:'단체', bc:'#888', mode:'driving',
-     from:[1.275835,103.8442824], to:[1.2797,103.8597],
+     from:[1.275835,103.8442824], to:[1.282088,103.8587715],
      body:'LS 전용차량 제공. 로비 집합 후 출발'},
   ],
   // D2 - MBS→조호바루
   bus_mbs_jb:[
     {id:'bus', name:'전용버스', badge:'단체', bc:'#888', mode:'driving',
-     from:[1.2797,103.8597], to:[1.4927,103.7414],
+     from:[1.282088,103.8587715], to:[1.7008011,103.4154865],
      body:'Tuas Second Link(제2링크) 경유 / 편도 약 1.5시간\n양측 국경에서 하차 후 각자 심사 통과 → 재탑승'},
   ],
   // D2 - JB→호텔 귀환
   bus_jb_hotel:[
     {id:'bus', name:'전용버스', badge:'단체', bc:'#888', mode:'driving',
-     from:[1.4927,103.7414], to:[1.275835,103.8442824],
+     from:[1.7008011,103.4154865], to:[1.275835,103.8442824],
      body:'역방향 귀환. 동일 경로.'},
   ],
   // D3 - MBS→Schneider
   bus_mbs_sch:[
     {id:'bus', name:'전용버스', badge:'단체', bc:'#888', mode:'driving',
-     from:[1.2797,103.8597], to:[1.3099,103.8090],
+     from:[1.282088,103.8587715], to:[1.3249723,103.7463454],
      body:'MBS → Schneider Innovation Hub 전용버스 이동'},
   ],
 };
@@ -1227,8 +1227,10 @@ const TR = {
 // NEWater Visitor Centre: 1.3361, 103.9021 ✓
 // Changi Business Park: 1.3346, 103.9654 ✓
 // Tuas Second Link: 1.3548, 103.6374 ✓
-// Brightray DC JB (Iskandar Puteri): 1.4927, 103.7414 ✓
-// Schneider Innovation Hub SG: 1.3099, 103.8090 ✓
+// Brightray MY-01/MY-02 (Sedenak Tech Park, Kulai): 1.7008011, 103.4154865
+// 출처: datacenterHawk / datacentermap — 등록주소 PTD 35322, Jalan Digital 11,
+//       Kawasan Perindustrian Kulai. 정확한 게이트 위치는 주최측 확인 필요
+// Schneider Innovation Hub SG (25 International Business Park): 1.3249723, 103.7463454 ✓
 // Merlion Park: 1.2868, 103.8545 ✓
 
 
@@ -1276,7 +1278,7 @@ var FOOD = [
        walk:'행사장 직결', open:'대체로 10:00~22:00', price:'S$10~40',
        d:'쇼핑몰 지하에 푸드코트(Rasapura Masters)와 레스토랑이 모여 있습니다.\n행사장에서 가장 가깝고 에어컨이 강력합니다.',
        tip:'점심시간엔 참관객이 몰립니다. 11:30이나 13:30을 노리세요.',
-       lat:1.2834,lng:103.8607},
+       lat:1.2837575,lng:103.8591065},
 
       {n:'가든스 바이 더 베이 푸드코트', en:'Satay by the Bay', addr:'18 Marina Gardens Dr',
        walk:'MBS에서 도보 12분', open:'매일 07:00~22:00', price:'S$6~12',
@@ -1292,7 +1294,7 @@ var FOOD = [
        walk:'호텔에서 도보 7분', open:'월~토 09:00~17:00 · 일 휴관', price:'무료',
        d:'<b>1:400 축척 싱가포르 도시 모형</b>이 한 층을 가득 채웁니다.\n용도지역·고도제한·개발 계획이 시각화돼 있어 건축·도시 전공자에겐 1시간이 순식간입니다.\nDC 용도지역 현황을 확인하기에도 좋습니다.',
        tip:'무료인데 내용이 알찹니다. 비 올 때 대피처로도 최적.\n<b>일요일 휴관</b> — 9/27(일)엔 못 갑니다.',
-       lat:1.2804,lng:103.8468},
+       lat:1.2798527,lng:103.845058},
 
       {n:'싱가포르 시티 갤러리 주변 숍하우스', en:'Duxton Hill', addr:'Duxton Hill / Keong Saik Rd',
        walk:'호텔에서 도보 5분', open:'상시', price:'무료',
@@ -1304,7 +1306,7 @@ var FOOD = [
        walk:'호텔에서 도보 8분', open:'매일 09:00~21:00', price:'S$6',
        d:'50층 공공주택 7개 동을 <b>26층·50층 스카이브리지</b>로 연결한 건물.\n50층 브리지가 전망대로 개방돼 있습니다 — 길이 500m, 싱가포르 남부 전체 조망.',
        tip:'입장은 <b>1동 지하</b>에서. EZ-Link 카드로 결제하고 게이트 통과.\n하루 방문 인원 제한이 있어 늦은 오후엔 마감될 수 있습니다.',
-       lat:1.2762,lng:103.8417},
+       lat:1.2778671,lng:103.8410265},
 
       {n:'마리나 배러지 옥상', en:'Marina Barrage', addr:'8 Marina Gardens Dr',
        walk:'MBS에서 자전거 12분 / 택시 8분', open:'24시간', price:'무료',
@@ -1434,7 +1436,7 @@ const DAYS=[
  lat:37.4491,lng:126.4503,zoom:11,checklist:true},
 {id:1,date:'9/27',wd:'일',badge:'✈️ 출발',bc:'#1255a0',
  title:'9/27 (일)',sub:'인천 출발 → 싱가포르 도착',
- lat:1.3592,lng:103.9896,zoom:13,lbl:'창이공항 T3',
+ lat:1.3560743,lng:103.9874748,zoom:13,lbl:'창이공항 T3',
  items:[
   {time:'07:00',type:'travel',icon:'✈️',title:'인천공항 1터미널 집결',
    loc:'인천국제공항 T1 · 출국장 3층',chips:[{t:'SQ607',c:'b'},{t:'09:00 출발',c:'b'}],
@@ -1447,7 +1449,7 @@ const DAYS=[
 
   {time:'09:00',type:'travel',icon:'🛫',title:'SQ607 출발 ICN→SIN',
    loc:'비행 6시간 20분',chips:[{t:'비행중',c:'b'}],
-   lat:1.3592,lng:103.9896,zoom:10,
+   lat:1.3560743,lng:103.9874748,zoom:10,
    secs:[
     {t:'기내 준비',b:'<b>싱가포르 입국카드</b> 기내에서 미리 작성\n직업(Occupation): Architect\n체류지(Address): Oasia Hotel Downtown, 100 Peck Seah Street, Tanjong Pagar, Singapore\n방문 목적(Purpose): Business'},
    ],tip:'도착 터미널을 탑승권에서 꼭 확인 (T2 또는 T3).',
@@ -1456,7 +1458,7 @@ const DAYS=[
   {time:'14:20',type:'travel',icon:'🛬',title:'창이공항 도착 — 입국 → 교통편',
    loc:'싱가포르 창이공항 T3',warn:'⚠️ 아래 도착 절차 및 교통편 확인',
    chips:[{t:'입국심사',c:'g'},{t:'수하물',c:'g'},{t:'Grab',c:'o'}],
-   lat:1.3592,lng:103.9896,zoom:15,
+   lat:1.3560743,lng:103.9874748,zoom:15,
    secs:[
     {t:'① 입국심사',b:'도착 → Arrivals 안내판 → <b>Immigration (Visitor)</b> 줄\n여권 + 입국카드 제출 / 지문 등록 / 약 15~25분 소요'},
     {t:'② 수하물 수취 (Baggage Claim)',b:'<b>SQ607 / ICN</b> 표시 캐러셀 번호 확인 후 대기\nT3 기준: Level 1, Arrival Hall B구역\n짐 분실 시 벨트 옆 Lost & Found 즉시 신고'},
@@ -1468,7 +1470,7 @@ const DAYS=[
 
   {time:'17:30',type:'social',icon:'🍽️',title:'팀 첫날 저녁식사',
    loc:'Tanjong Pagar 인근',chips:[{t:'도보',c:'g'}],
-   lat:1.2742,lng:103.8431,zoom:16,
+   lat:1.2805121,lng:103.8503809,zoom:16,
    secs:[
     {t:'추천 식당',b:'<b>라우파삿 Lau Pa Sat</b> — 도보 10분. 18 Raffles Quay. 호커센터+사테이거리.\n<b>Amoy Food Centre</b> — 도보 5분. 7 Maxwell Rd. 현지인 맛집.\n<b>Tanjong Pagar Plaza 호커센터</b> — 도보 3분. 6 Tanjong Pagar Plaza.'},
    ],tip:'SGD 현금 소액 준비 권장. 호커센터 일부 카드 불가.',
@@ -1488,13 +1490,13 @@ const DAYS=[
     {num:0,icon:'🏨',name:'숙소 출발 — Oasia Hotel Downtown',time:'09:00',dur:'—',how:'로비 집합 → MRT 또는 Grab',lat:1.275835,lng:103.8442824,
      desc:'100 Peck Seah St, Singapore 079333.\n<b>가장 가까운 역</b>\n· Tanjong Pagar역 (EW15, 초록) — 도보 3분\n· Maxwell역 (TE18, 갈색) — 도보 7분\n\n<b>첫 목적지 마리나베이 샌즈까지</b>\n· MRT: Maxwell(TE18) → Marina Bay(TE20) → CC선 환승 → Bayfront(CE1) · 약 20분 · S$1.5\n· Grab: 약 10분 · S$9~13 (4명이면 이 편이 낫습니다)',
      tip:'아래 <b>이 구간 길찾기</b>에서 실시간 경로를 확인하세요.\n아침 9시대는 출근 시간과 겹칩니다 — MRT가 붐빌 수 있습니다.'},
-    {num:1,icon:'🏢',name:'마리나베이 샌즈 (MBS)',time:'09:30',dur:'60분',how:'MRT CC/DT → Bayfront역 (CE1/DT16) 도보 3분',lat:1.2834,lng:103.8607,
+    {num:1,icon:'🏢',name:'마리나베이 샌즈 (MBS)',time:'09:30',dur:'60분',how:'MRT CC/DT → Bayfront역 (CE1/DT16) 도보 3분',lat:1.2837575,lng:103.8591065,
      desc:'모쉐 사프디 설계. 3개 타워 위 캔틸레버 스카이파크 343m. <b>내일 DCW 행사장</b> — Sands Expo & Convention Centre 위치 사전 파악 필수.',
      tip:'지상층 내부 자유입장. Sands Expo는 Tower 3 방향 연결통로 이용.'},
     {num:2,icon:'🌿',name:'가든스 바이 더 베이',time:'11:00',dur:'90분',how:'MBS에서 도보 10분 (연결 footbridge)',lat:1.2816,lng:103.8636,
      desc:'슈퍼트리 18개(최대 50m). Wilkinson Eyre+Grant Associates. 친환경 OCBC Skyway 22m 공중 보행로.',
      tip:'클라우드포레스트 SGD 12 / 플라워돔 SGD 12. 낮엔 수퍼트리쇼 없음 — 구조 관찰 집중.'},
-    {num:3,icon:'🌉',name:'헬릭스 브리지',time:'12:30',dur:'20분',how:'도보 8분',lat:1.2893,lng:103.8608,
+    {num:3,icon:'🌉',name:'헬릭스 브리지',time:'12:30',dur:'20분',how:'도보 8분',lat:1.2874774,lng:103.8606326,
      desc:'DNA 이중나선 구조 강교 280m. Cox Architecture + Arup 설계. 보행교+조형물 겸용.',
      tip:'외부 무료 접근. 구조 디테일 근접 촬영 포인트.'},
     {num:4,icon:'🎭',name:'에스플러네이드 극장',time:'13:00',dur:'30분',how:'도보 8분',lat:1.2897,lng:103.8554,
@@ -1517,16 +1519,16 @@ const DAYS=[
     {num:1,icon:'🏯',name:'차이나타운 & 불아사',time:'09:30',dur:'60분',how:'MRT NE4/DT19 → Chinatown역 도보 3분',lat:1.2817,lng:103.8443,
      desc:'Buddha Tooth Relic Temple. 당나라 양식 재해석 4층 사원. 인근 쇼프하우스 5피트웨이(케오 레인) 도시조직 보존.',
      tip:'맥스웰 푸드센터 바로 옆 — 현지인 인기 식당. 중식 해결 가능.'},
-    {num:2,icon:'🏗️',name:'피너클 @ 덕스턴',time:'10:45',dur:'45분',how:'도보 5분 (Cantonment Rd)',lat:1.2762,lng:103.8417,
+    {num:2,icon:'🏗️',name:'피너클 @ 덕스턴',time:'10:45',dur:'45분',how:'도보 5분 (Cantonment Rd)',lat:1.2778671,lng:103.8410265,
      desc:'ARC Studio Architecture. 50층 HDB 7개 동. 26층·50층 스카이브리지 연결. 싱가포르 공공주택 최고 성취작.',
      tip:'옥상 스카이브리지 SGD 6. 전망 훌륭.'},
-    {num:3,icon:'🕌',name:'술탄 모스크 & 캄퐁글람',time:'12:00',dur:'60분',how:'MRT EW12/DT14 → Bugis역 도보 7분',lat:1.3015,lng:103.8572,
+    {num:3,icon:'🕌',name:'술탄 모스크 & 캄퐁글람',time:'12:00',dur:'60분',how:'MRT EW12/DT14 → Bugis역 도보 7분',lat:1.3022854,lng:103.8589636,
      desc:'1928년 황금 돔 술탄 모스크. 하지 레인 헤리티지 숍하우스 거리. 말레이·아랍 문화권 역사지구.',
      tip:'Arab Street 말레이 식당 — 중식 추천.'},
-    {num:4,icon:'🛕',name:'스리 비라마칼리암만 사원',time:'13:30',dur:'45분',how:'MRT NE7/CC1 → Little India역 도보 3분',lat:1.3066,lng:103.8521,
+    {num:4,icon:'🛕',name:'스리 비라마칼리암만 사원',time:'13:30',dur:'45분',how:'MRT NE7/CC1 → Little India역 도보 3분',lat:1.3078878,lng:103.85248,
      desc:'드라비다 양식. 고푸람(탑문) 신상 조각 집약. 세랑군 로드 인도계 도시조직.',
      tip:'입장 시 신발 탈착. 어깨 가리기.'},
-    {num:5,icon:'🏛️',name:'URA 도시갤러리',time:'14:30',dur:'60분',how:'MRT EW15 → Tanjong Pagar역 도보 5분',lat:1.2804,lng:103.8468,
+    {num:5,icon:'🏛️',name:'URA 도시갤러리',time:'14:30',dur:'60분',how:'MRT EW15 → Tanjong Pagar역 도보 5분',lat:1.2798527,lng:103.845058,
      desc:'1:400 싱가포르 전체 도시모형. 도시재개발청 전시관. 마스터플랜 총람.',
      tip:'무료입장. 월~토 09:00~17:00. DC 용도지역 현황 파악에 최적.'},
     {num:6,icon:'🏨',name:'숙소 복귀',time:'15:45',dur:'—',how:'도보 5분',lat:1.275835,lng:103.8442824,
@@ -1538,18 +1540,18 @@ const DAYS=[
    lat:1.3346,lng:103.9654,
    spots:[
     {num:0,icon:'🏨',name:'숙소 출발 — Oasia Hotel Downtown',time:'08:45',dur:'—',how:'로비 집합 → MRT 또는 Grab',lat:1.275835,lng:103.8442824,
-     desc:'100 Peck Seah St, Singapore 079333.\n<b>첫 목적지 NEWater 방문자센터까지</b> — 이 루트는 이동 거리가 깁니다\n· MRT+버스: Tanjong Pagar(EW15) → Paya Lebar 환승 → Ubi(DT27) → 버스 · 약 50분 · S$2\n· Grab: 약 25분 · S$18~25 (4명이면 1인당 S$5~6, 시간을 크게 아낍니다)\n\n오늘은 동선이 길어 <b>Grab을 권합니다.</b>',
+     desc:'100 Peck Seah St, Singapore 079333.\n<b>첫 목적지 NEWater 방문자센터까지</b> — 이 루트는 이동 거리가 깁니다\n· MRT+버스: Tanjong Pagar(EW15) → Tanah Merah(EW4) → 버스 · 약 55분 · S$2\n· Grab: 약 25분 · S$18~25 (4명이면 1인당 S$5~6, 시간을 크게 아낍니다)\n\n오늘은 동선이 길어 <b>Grab을 권합니다.</b>',
      tip:'첫 일정이 09:30이라 08:45에는 나서야 여유가 있습니다.\n아래 길찾기로 실시간 소요시간을 확인하고 정하세요.'},
-    {num:1,icon:'💧',name:'NEWater 방문자센터',time:'09:30',dur:'75분',how:'MRT CC9 → Ubi역 → 버스 65/21번 (20분)',lat:1.3361,lng:103.9021,
+    {num:1,icon:'💧',name:'NEWater 방문자센터',time:'09:30',dur:'75분',how:'Tanah Merah역(EW4) → 버스 약 10분 / Grab 25분',lat:1.3242462,lng:103.9586772,
      desc:'하수→음용수 재처리 시설. 싱가포르 물 자립 전략 핵심. DC 냉각수 재활용 개념 연계.',
      tip:'무료입장 / 예약 불필요 / 월~토 09:00~17:00.'},
-    {num:2,icon:'💼',name:'창이 비즈니스 파크',time:'11:00',dur:'60분',how:'MRT EW29 → Expo역 도보 5분',lat:1.3346,lng:103.9654,
+    {num:2,icon:'💼',name:'창이 비즈니스 파크',time:'11:00',dur:'60분',how:'NEWater에서 차로 5분 · 버스 10분 (1.5km)',lat:1.3346,lng:103.9654,
      desc:'Singtel·DBS·IBM DC 밀집 클러스터. 저층 대용량 전력 공급 인프라. IT기업 200여개 입주.',
      tip:'외형·외장재·환기구·전력 인입 디테일 관찰 포인트.'},
-    {num:3,icon:'🗺️',name:'URA 도시갤러리',time:'12:30',dur:'60분',how:'MRT EW15 → Tanjong Pagar역 도보 5분',lat:1.2804,lng:103.8468,
+    {num:3,icon:'🗺️',name:'URA 도시갤러리',time:'12:30',dur:'60분',how:'MRT EW15 → Tanjong Pagar역 도보 5분',lat:1.2798527,lng:103.845058,
      desc:'1:400 싱가포르 도시모형. 마스터플랜 총람. DC 용도지역 현황.',
      tip:'무료입장.'},
-    {num:4,icon:'🏢',name:'MBS 행사장 사전 확인',time:'14:00',dur:'60분',how:'MRT CC/DT → Bayfront역 도보 3분',lat:1.2834,lng:103.8607,
+    {num:4,icon:'🏢',name:'MBS 행사장 사전 확인',time:'14:00',dur:'60분',how:'MRT CC/DT → Bayfront역 도보 3분',lat:1.282088,lng:103.8587715,
      desc:'내일 DCW 행사장 Sands Expo & Convention Centre. 등록 카운터·전시홀 레이아웃·화장실·식당 동선 파악.',
      tip:'Convention Centre 입구는 Tower 3 연결통로 이용.'},
     {num:5,icon:'🏨',name:'숙소 복귀',time:'15:30',dur:'—',how:'MRT CC/DT선 또는 Grab',lat:1.275835,lng:103.8442824,
@@ -1613,7 +1615,7 @@ const DAYS=[
 
   {time:'09:00',type:'event',icon:'🏢',title:'DCW Asia 2026 오전 참관',
    loc:'Marina Bay Sands Expo & Convention Centre B2',chips:[{t:'명함 30장+',c:'g'},{t:'배지 수령',c:'g'}],
-   lat:1.2797,lng:103.8597,zoom:16,
+   lat:1.282088,lng:103.8587715,zoom:16,
    secs:[
     {t:'행사장 위치',b:'<b>Sands Expo & Convention Centre</b>\nMBS 지하 2층 (B2) / 전용버스 하차 후 Convention Centre 입구 이동\nBayfront MRT역에서도 직결 연결'},
     {t:'오전 일정',b:'09:00 KDCEA 참관단 집결 · 단체사진 (행사장 앞)\n09:30~11:30 DCW 세션 및 전시 부스 참관'},
@@ -1624,7 +1626,7 @@ const DAYS=[
    loc:'전용버스 · 편도 약 1시간 30분',
    chips:[{t:'여권 필수',c:'r'},{t:'말레이시아 입국',c:'o'},{t:'입국카드 작성',c:'o'}],
    warn:'⚠️ 버스에서 내려 입출국 심사 각자 통과 후 재탑승',
-   lat:1.3548,lng:103.6374,zoom:11,
+   lat:1.3473242,lng:103.6357333,zoom:11,
    secs:[
     {t:'국경 통과 절차',b:'① 전용버스 출발 → Tuas Second Link(제2링크) 이동\n② <b>싱가포르 출국심사</b> — 버스 하차 → ICA Tuas 줄서기 → 여권 스캔\n③ 버스 재탑승 → 말레이시아 이민국 이동\n④ <b>말레이시아 입국심사</b> — 버스 하차 → Customs 통과 → 재탑승\nMDAC(말레이시아 디지털 입국카드)은 종이가 아니라 <b>온라인 사전 제출</b>입니다 — 9/26부터 미리 해두세요'},
     {t:'소요시간',b:'편도 <b>약 1시간 30분</b> (평일 낮 기준)\n러시아워·주말은 2~3시간 소요 가능'},
@@ -1632,14 +1634,14 @@ const DAYS=[
    mapQ:'Tuas Second Link Singapore Malaysia Border Crossing',trKey:'bus_mbs_jb'},
 
   {time:'13:00',type:'tour',icon:'🖥️',title:'Brightray MY-01 & MY-02 DC 투어',
-   loc:'Brightray Data Centre, Iskandar Puteri, Johor Bahru, Malaysia',
+   loc:'Brightray MY-01 & MY-02, Sedenak Tech Park, Kulai, Johor',
    chips:[{t:'하이퍼스케일 DC',c:'o'},{t:'MW급 규모',c:'o'},{t:'사진정책 확인',c:'k'}],
-   lat:1.4927,lng:103.7414,zoom:14,
+   lat:1.7008011,lng:103.4154865,zoom:14,
    secs:[
-    {t:'시설 개요',b:'<b>Brightray MY-01 & MY-02</b>\n말레이시아 이스칸다르 퓨테리(구 누사자야) 위치\n하이퍼스케일 DC 클러스터 / 투어 약 2~2.5시간'},
+    {t:'시설 개요',b:'<b>Brightray MY-01 & MY-02</b>\n말레이시아 조호르주 <b>쿨라이 세데낙 테크파크</b>\n(Jalan Digital 11, Kawasan Perindustrian Kulai)\n하이퍼스케일 DC 클러스터 / 투어 약 2~2.5시간\n\n싱가포르에서 편도 약 90km — 국경 포함 1시간 30분~2시간 잡으세요'},
     {t:'관찰 포인트',b:'· 전력 공급 인프라 (변전소·UPS·발전기 배치)\n· 냉각 시스템 (쿨링타워·CRAC/CRAH 유닛·콜드/핫 아일)\n· 이중화 구조 (Tier 등급·동선 분리·2N 구성)\n· 외장재·무창 파사드·보안 경계부 설계\n· BMS/DCIM 운영 플랫폼 구성'},
    ],tip:'사진 금지 구역 현장에서 반드시 확인. 명함 지참.',
-   mapQ:'Iskandar Puteri Johor Bahru Malaysia data centre'},
+   mapQ:'Sedenak Tech Park Jalan Digital Kulai Johor'},
 
   {time:'15:30',type:'travel',icon:'🚌',title:'싱가포르 귀환',
    loc:'전용버스 · 역방향 국경 통과',chips:[{t:'싱가포르 재입국',c:'b'}],
@@ -1649,7 +1651,7 @@ const DAYS=[
 
   {time:'17:30',type:'social',icon:'🍽️',title:'팀 저녁식사',
    loc:'Tanjong Pagar 인근',chips:[{t:'도보',c:'g'}],
-   lat:1.2742,lng:103.8431,zoom:16,
+   lat:1.2805121,lng:103.8503809,zoom:16,
    secs:[{t:'추천',b:'<b>라우파삿</b> (도보 10분) 또는 <b>Amoy Food Centre</b> (도보 5분)'}],
    tip:'조호바루 이동 피로 고려 — 가까운 곳 추천.',
    mapQ:'Lau Pa Sat Singapore'},
@@ -1668,7 +1670,7 @@ const DAYS=[
 
   {time:'09:00',type:'event',icon:'🏢',title:'DCW Asia 2026 참관',
    loc:'Marina Bay Sands Expo (점심 제공)',chips:[{t:'점심 포함',c:'g'}],
-   lat:1.2797,lng:103.8597,zoom:16,
+   lat:1.282088,lng:103.8587715,zoom:16,
    secs:[{t:'일정',b:'09:00~15:45 DCW 세션 및 전시 참관\n점심: MBS 행사장 내 제공\n15:30 로비 집합 → Schneider 이동'}],
    tip:'오후 세션 집중 탐방. 15:30 정각 집합.',
    mapQ:'Marina Bay Sands Expo Convention Centre Singapore'},
@@ -1676,7 +1678,7 @@ const DAYS=[
   {time:'15:45',type:'tour',icon:'⚡',title:'Schneider Electric Innovation Hub 투어',
    loc:'Schneider Electric, 25 International Business Park, Singapore 609916',
    chips:[{t:'전력·냉각 실물',c:'o'},{t:'확정',c:'g'}],
-   lat:1.3099,lng:103.8090,zoom:16,
+   lat:1.3249723,lng:103.7463454,zoom:16,
    secs:[
     {t:'시설 위치',b:'<b>Schneider Electric Singapore Innovation Hub</b>\n25 International Business Park, Jurong East (S)609916\nMRT → Jurong East 방향 / 전용버스 이동'},
     {t:'관찰 포인트',b:'· EcoStruxure IT (DCIM 플랫폼) 실사용 데모\n· 모듈형 UPS 시스템 (Galaxy VM/VX)\n· In-row Cooling 냉각 솔루션\n· 프리패브 DC 모듈 전시 (Micro DC)'},
@@ -1704,7 +1706,7 @@ const DAYS=[
 
   {time:'09:00',type:'event',icon:'🏢',title:'DCW 마지막 참관',
    loc:'Marina Bay Sands Expo (점심 포함)',chips:[{t:'명함 마무리',c:'g'}],
-   lat:1.2797,lng:103.8597,zoom:16,
+   lat:1.282088,lng:103.8587715,zoom:16,
    secs:[{t:'일정',b:'09:00~17:00 마지막 세션·전시 참관\n점심: 행사장 내 제공'}],
    tip:'미확보 명함 마무리. 한국 귀국 전 인사 교환.',
    mapQ:'Marina Bay Sands Expo Convention Centre Singapore'},
@@ -1718,7 +1720,7 @@ const DAYS=[
 
   {time:'17:30',type:'social',icon:'🤝',title:'KDCEA 단체 네트워킹 행사',
    loc:'장소 협의 중',chips:[{t:'KDCEA 주관',c:'r'}],
-   lat:1.2797,lng:103.8597,zoom:14,
+   lat:1.2837575,lng:103.8591065,zoom:14,
    secs:[{t:'안내',b:'장소 확정 시 업데이트 예정'}],
    tip:'명함 충분히 지참.',
    mapQ:'Marina Bay Sands Singapore'},
@@ -1737,7 +1739,7 @@ const DAYS=[
 
 {id:6,date:'10/2',wd:'금',badge:'🏠 귀국',bc:'#1255a0',
  title:'10/2 (금)',sub:'새벽 체크아웃 → 08:10 귀국편 → 인천 15:30 도착',
- lat:1.3592,lng:103.9896,zoom:11,lbl:'창이공항 → 인천',
+ lat:1.3560743,lng:103.9874748,zoom:11,lbl:'창이공항 → 인천',
  items:[
   {time:'04:50',type:'free',icon:'⏰',title:'기상 · 마지막 점검',
    loc:'Oasia Hotel Downtown',chips:[{t:'모닝콜 04:50',c:'r'}],
@@ -1763,7 +1765,7 @@ const DAYS=[
    loc:'Changi Airport Terminal 3 Departure Hall',
    warn:'⚠️ 세금환급(GST)은 수하물 부치기 전에 — 순서를 바꾸면 못 받습니다',
    chips:[{t:'카운터 마감 07:10',c:'r'},{t:'GST 환급',c:'o'}],
-   lat:1.3592,lng:103.9896,zoom:15,
+   lat:1.3560743,lng:103.9874748,zoom:15,
    secs:[
     {t:'① 세금환급 먼저 (쇼핑했다면)',b:'싱가포르는 <b>GST 9% 환급(Tourist Refund Scheme)</b>이 됩니다.\n같은 가게에서 <b>S$100 이상</b> 구매 + eTRS 영수증이 있어야 합니다.\n<b>출국장 체크인 카운터 앞 eTRS 키오스크</b>에서 여권 스캔 → 환급 신청\n<b>산 물건을 위탁수하물에 넣을 거라면 부치기 전에</b> 해야 합니다. 부치고 나면 검사 요청에 응할 수 없어 거절됩니다'},
     {t:'② 체크인 · 수하물',b:'싱가포르항공 카운터 (T3 Row 5~11)\n<b>마감 07:10</b> (출발 60분 전)\n김상범 소장 비즈니스 30kg / 나머지 3인 23kg\n보조배터리·전자담배류는 위탁 불가 — 기내로'},
@@ -1774,7 +1776,7 @@ const DAYS=[
   {time:'08:10',type:'travel',icon:'🛫',title:'귀국편 출발 SIN→ICN',
    loc:'창이 T3 08:10 출발 → 인천 T1 15:30 도착',
    chips:[{t:'08:10 출발',c:'b'},{t:'약 6h20m',c:'k'}],
-   lat:1.3592,lng:103.9896,zoom:12,
+   lat:1.3560743,lng:103.9874748,zoom:12,
    secs:[
     {t:'비행',b:'창이 <b>08:10</b> 출발 → 인천 T1 <b>15:30</b> 도착 (약 6시간 20분)\n시차 1시간 (싱가포르가 1시간 느림)\n기내에서 여행자 세관신고는 모바일 신고로 대체 가능합니다'},
    ],tip:'낮 비행이라 도착 후 반차 쓰지 않아도 되는 시간대입니다.',
@@ -1861,7 +1863,7 @@ var PLACE_LABEL = {
   '인천공항 1터미널 집결':['인천공항 T1','Incheon Airport T1'],
   'SQ607 출발 ICN→SIN':['싱가포르 창이공항','Singapore Changi Airport'],
   '창이공항 도착 — 입국 → 교통편':['창이공항 T3','Changi Airport T3'],
-  '팀 첫날 저녁식사':['탄종파가','Tanjong Pagar'],
+  '팀 첫날 저녁식사':['라우파삿','Lau Pa Sat'],
   '호텔 출발 — 전용버스':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 출발':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 출발 → 창이공항 T3':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
@@ -1869,13 +1871,13 @@ var PLACE_LABEL = {
   '기상 · 마지막 점검':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '싱가포르 귀환':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '저녁식사':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
-  '팀 저녁식사':['탄종파가','Tanjong Pagar'],
+  '팀 저녁식사':['라우파삿','Lau Pa Sat'],
   'DCW Asia 2026 오전 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
   'DCW Asia 2026 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
   'DCW 마지막 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
   'KDCEA 단체 네트워킹 행사':['마리나베이 샌즈','Marina Bay Sands'],
   '조호바루 출발 — Tuas Second Link 국경 통과':['투아스 제2링크','Tuas Second Link'],
-  'Brightray MY-01 & MY-02 DC 투어':['이스칸다르 푸테리','Iskandar Puteri, Johor'],
+  'Brightray MY-01 & MY-02 DC 투어':['세데낙 테크파크 · 쿨라이','Sedenak Tech Park, Kulai'],
   'Schneider Electric Innovation Hub 투어':['인터내셔널 비즈니스 파크','International Business Park'],
   '싱가포르 시내투어':['머라이언 파크','Merlion Park'],
   '창이 T3 도착 — 체크인 · 세금환급 · 출국':['창이공항 T3','Changi Airport T3'],
