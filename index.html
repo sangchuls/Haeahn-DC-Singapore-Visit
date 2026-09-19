@@ -1164,10 +1164,10 @@ const TR = {
   d4_airport:[
     {id:'grab', name:'Grab (추천)', badge:'추천', bc:'#1e7e5a', mode:'driving',
      from:[1.275835,103.8442824], to:[1.3592,103.9896],
-     body:'GrabCar Max (7인승) → 목적지: "Singapore Changi Airport Terminal 3"\nSGD 20~28 / 약 20~25분 / 21:30~21:40 출발 권장'},
+     body:'GrabCar Max (7인승) → 목적지: "Singapore Changi Airport Terminal 3"\nSGD 22~30 / 약 20분 (새벽이라 막힘 없음) / <b>05:30 출발</b> 권장'},
     {id:'taxi', name:'택시', badge:'편리', bc:'#c45e0a', mode:'driving',
      from:[1.275835,103.8442824], to:[1.3592,103.9896],
-     body:'미터제 + 심야/공항할증 → SGD 25~35\n"Changi Airport Terminal 3" 탑승 시 전달\n약 20~25분'},
+     body:'미터제 + 새벽할증(00:00~06:00 50%) + 공항할증 → SGD 30~40\n"Changi Airport Terminal 3" 탑승 시 전달\n약 20분. 새벽에는 호텔 프론트에 미리 콜택시 요청해두면 확실합니다'},
   ],
   // D2 - 호텔→MBS
   bus_hotel_mbs:[
@@ -1326,7 +1326,7 @@ var CHECKLIST = [
       {id:'p1', t:'여권 유효기간 확인', d:'2027년 4월 이후 만료여야 안전 (싱가포르·말레이시아 모두 6개월 이상 요구)', critical:true},
       {id:'p2', t:'여권 사본 촬영 → 폰에 저장', d:'분실 대비. 클라우드에도 백업'},
       {id:'p3', t:'DCW Asia 2026 등록 확인', d:'등록 확인 메일의 QR 코드를 폰에 저장 또는 캡처'},
-      {id:'p4', t:'항공권 e-티켓 확인', d:'SQ607 (9/27 09:00) · SQ608 (10/2 00:20) 편명과 시각 대조'},
+      {id:'p4', t:'항공권 e-티켓 확인 — 귀국편 시각 주의', d:'싱가포르항공\n<b>9/27(일)</b> 인천 09:00 → 싱가포르 14:20\n<b>10/2(금)</b> 싱가포르 08:10 → 인천 15:30\n귀국편이 <b>오전</b>입니다. e-티켓의 편명과 시각을 직접 대조하세요', critical:true},
       {id:'p5', t:'호텔 예약 확인서', d:'Oasia Hotel Downtown · 5박 · 4실 · 입국심사에서 물어볼 수 있음'},
       {id:'p6', t:'여행자보험 가입', d:'출장 규정 확인 후 회사 단체보험 또는 개인 가입'},
     ]},
@@ -1400,7 +1400,7 @@ var CHECKLIST = [
       {id:'pk3', t:'9/27 입차 — 06:00 이후, 06:30까지', d:'예약 시작이 06:00입니다. 07:00 집결이니 06:00~06:30 사이에 들어가면 셔틀 타고도 여유가 있습니다'},
       {id:'pk4', t:'P5 → 제1터미널 셔틀 탑승', d:'P5는 장기주차 구역이라 터미널까지 전용 셔틀버스를 탑니다. 주차 후 셔틀 승차장 위치를 확인하세요\n문의 032-741-6017'},
       {id:'pk5', t:'주차 위치 사진 찍어두기', d:'6일 뒤에 찾습니다. 구역 번호와 기둥 표시를 찍어두면 확실합니다'},
-      {id:'pk6', t:'10/2 출차 — 18:00 이전', d:'항공편이 07:45 도착이라 여유는 충분합니다. 예약 종료 시각을 넘기면 추가 요금이 붙습니다'},
+      {id:'pk6', t:'10/2 출차 — 18:00 이전', d:'인천 <b>15:30</b> 도착 → 입국심사·수하물 약 40분 → P5 셔틀.\n보통 17시 전후에 출차하게 됩니다. 예약 종료가 18:00이라 여유가 아주 크진 않으니 입국장을 나오면 바로 셔틀로 이동하세요', critical:true},
     ]},
 
   { group:'9/27 당일 아침', icon:'🛫', color:'#1255a0',
@@ -1678,13 +1678,13 @@ const DAYS=[
 },
 
 {id:5,date:'10/1',wd:'목',badge:'🤝 네트워킹',bc:'#a82020',
- title:'10/1 (목)',sub:'DCW 마지막 참관 + KDCEA 네트워킹 + 귀국 출발',
+ title:'10/1 (목)',sub:'DCW 마지막 참관 + 시내투어 + KDCEA 네트워킹',
  lat:1.2900,lng:103.8500,zoom:13,lbl:'Marina Bay Sands',
  items:[
   {time:'08:20',type:'travel',icon:'🚌',title:'호텔 출발',
    loc:'전용버스',chips:[{t:'08:20 출발',c:'r'}],
    lat:1.275835,lng:103.8442824,zoom:15,
-   secs:[{t:'집합',b:'로비 <b>08:10</b>까지 집합\n오늘 밤 귀국 — 짐 미리 정리 또는 프론트 맡기기'}],
+   secs:[{t:'집합',b:'로비 <b>08:10</b>까지 집합\n오늘이 마지막 일정입니다. 내일 아침 05:30에 공항으로 출발하니 오늘 밤에 짐을 싸두세요'}],
    tip:'',mapQ:'Oasia Hotel Downtown Singapore',trKey:'bus_hotel_mbs'},
 
   {time:'09:00',type:'event',icon:'🏢',title:'DCW 마지막 참관',
@@ -1708,42 +1708,70 @@ const DAYS=[
    tip:'명함 충분히 지참.',
    mapQ:'Marina Bay Sands Singapore'},
 
-  {time:'19:30',type:'free',icon:'🧳',title:'호텔 귀환 · 체크아웃',
-   loc:'Oasia Hotel Downtown',warn:'⚠️ 레이트체크아웃 또는 짐 보관 사전 프론트 요청',
-   chips:[],lat:1.275835,lng:103.8442824,zoom:15,
+  {time:'19:30',type:'free',icon:'🧳',title:'호텔 복귀 · 짐 정리',
+   loc:'Oasia Hotel Downtown',warn:'⚠️ 내일 05:30 출발 — 오늘 밤에 숙박비 정산까지 끝내두세요',
+   chips:[{t:'마지막 밤',c:'k'}],lat:1.275835,lng:103.8442824,zoom:15,
    secs:[
-    {t:'체크아웃 전략',b:'옵션1: <b>레이트 체크아웃</b> 22:00까지 요청 (추가 요금 가능)\n옵션2: <b>짐 보관 (Left Luggage)</b> 프론트 맡기고 행사 후 픽업\n→ 체크인 당일 또는 전날 미리 요청 권장'},
-   ],tip:'"Can I store my luggage until 22:00?" 영어로 프론트 요청.',
+    {t:'오늘 밤에 끝낼 것',b:'① <b>숙박비 정산(Settle the bill)</b>을 프론트에서 미리 — 새벽 체크아웃 때 키만 반납하면 됩니다\n② 캐리어 싸기 — 기내 반입 가방과 위탁 수하물 분리\n③ 05:30 Grab 예약 또는 프론트에 콜택시 요청\n④ 모닝콜 <b>04:50</b> 요청'},
+    {t:'수하물 규정',b:'<b>김상범 소장</b> 비즈니스 30kg / <b>나머지 3인</b> 이코노미 23kg\n면세점 주류는 위탁, 보조배터리는 반드시 기내 반입'},
+   ],tip:'프론트에 이렇게 말하면 됩니다 — "We check out at 5:30 tomorrow morning. Can we settle the bill tonight and book a taxi for 5:30?"',
    mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
 
-  {time:'22:00',type:'travel',icon:'✈️',title:'창이공항 집결 · SQ608 탑승수속',
-   loc:'싱가포르 창이공항 T3',warn:'⚠️ 카운터 마감 23:20 — 21:30~40 출발 권장',
-   chips:[{t:'SQ608',c:'b'},{t:'00:20 출발',c:'b'},{t:'면세쇼핑',c:'k'}],
-   lat:1.3592,lng:103.9896,zoom:15,
-   secs:[
-    {t:'공항 이동',b:'호텔 → 창이공항 T3\n<b>Grab</b> 또는 택시 이용 / 약 20~25분\n<b>21:30~21:40 출발</b> 권장'},
-    {t:'탑승 안내',b:'SQ608 <b>00:20</b> 출발 → 인천 T1 <b>07:45</b> 도착 (10/2)\n카운터 마감: <b>23:20</b> (출발 60분 전)\nT3 출국장 → 보안검사 → 면세구역'},
-   ],tip:'GrabCar Max 1대 4명 이동 추천. 짐 많으면 GrabMPV 선택.',
-   mapQ:'Singapore Changi Airport Terminal 3 Departure Hall',trKey:'d4_airport'},
-
-  {time:'00:20',type:'travel',icon:'🛫',title:'SQ608 출발 SIN→ICN',
-   loc:'10/2 (금) 07:45 인천 T1 도착',chips:[{t:'6h30m',c:'b'},{t:'SQ608',c:'b'}],
-   lat:37.4491,lng:126.4503,zoom:13,
-   secs:[{t:'귀국',b:'SQ608 창이 00:20 출발 → 인천 T1 07:45 도착 (10/2)\n수하물 수취 후 자유 해산'}],
-   tip:'수고하셨습니다! 🎉',
-   mapQ:'인천국제공항 1터미널'},
  ]
 },
 
 {id:6,date:'10/2',wd:'금',badge:'🏠 귀국',bc:'#1255a0',
- title:'10/2 (금)',sub:'인천 도착 · 해산',
- lat:37.4491,lng:126.4503,zoom:13,lbl:'인천공항',
+ title:'10/2 (금)',sub:'새벽 체크아웃 → 08:10 귀국편 → 인천 15:30 도착',
+ lat:1.3592,lng:103.9896,zoom:11,lbl:'창이공항 → 인천',
  items:[
-  {time:'07:45',type:'travel',icon:'🏠',title:'인천공항 T1 도착 · 해산',
+  {time:'04:50',type:'free',icon:'⏰',title:'기상 · 마지막 점검',
+   loc:'Oasia Hotel Downtown',chips:[{t:'모닝콜 04:50',c:'r'}],
+   lat:1.275835,lng:103.8442824,zoom:16,
+   secs:[
+    {t:'나가기 전 확인',b:'□ 여권 · 지갑 · 폰 · 보조배터리\n□ 객실 금고 <b>반드시 열어보기</b> — 가장 흔한 분실 경로입니다\n□ 충전기, 욕실, 옷장, 침대 밑\n□ 4명 인원 확인'},
+   ],tip:'전날 밤에 정산을 끝냈다면 키 반납만 하면 됩니다.',
+   mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
+
+  {time:'05:30',type:'travel',icon:'🚕',title:'호텔 출발 → 창이공항 T3',
+   loc:'100 Peck Seah St → Changi Airport T3',
+   warn:'⚠️ 08:10 출발 · 카운터 마감 07:10 — 05:30에는 나서야 합니다',
+   chips:[{t:'Grab 또는 택시',c:'b'},{t:'약 20분',c:'k'}],
+   lat:1.275835,lng:103.8442824,zoom:15,
+   secs:[
+    {t:'이동',b:'호텔 → 창이공항 <b>T3</b> (싱가포르항공 터미널)\n새벽이라 도로가 비어 <b>약 20분</b>\nGrab SGD 22~30 · 택시는 새벽할증 붙어 SGD 30~40'},
+    {t:'기사에게',b:'"Changi Airport <b>Terminal 3</b>, departure please."\n4명 + 캐리어 4개면 <b>GrabCar Max</b> 또는 <b>GrabMPV</b>로 부르세요. 일반 GrabCar는 짐이 안 들어갑니다'},
+    {t:'새벽 호출이 불안하면',b:'전날 밤 프론트에 콜택시를 예약해두는 편이 확실합니다.\n"Can you book a taxi for 5:30 tomorrow morning? Four people with luggage."'},
+   ],tip:'Grab이 새벽에 안 잡히면 호텔 앞 택시 스탠드 또는 프론트에 바로 요청하세요.',
+   mapQ:'Singapore Changi Airport Terminal 3 Departure Hall',trKey:'d4_airport'},
+
+  {time:'06:00',type:'travel',icon:'🛂',title:'창이 T3 도착 — 체크인 · 세금환급 · 출국',
+   loc:'Changi Airport Terminal 3 Departure Hall',
+   warn:'⚠️ 세금환급(GST)은 수하물 부치기 전에 — 순서를 바꾸면 못 받습니다',
+   chips:[{t:'카운터 마감 07:10',c:'r'},{t:'GST 환급',c:'o'}],
+   lat:1.3592,lng:103.9896,zoom:15,
+   secs:[
+    {t:'① 세금환급 먼저 (쇼핑했다면)',b:'싱가포르는 <b>GST 9% 환급(Tourist Refund Scheme)</b>이 됩니다.\n같은 가게에서 <b>S$100 이상</b> 구매 + eTRS 영수증이 있어야 합니다.\n<b>출국장 체크인 카운터 앞 eTRS 키오스크</b>에서 여권 스캔 → 환급 신청\n<b>산 물건을 위탁수하물에 넣을 거라면 부치기 전에</b> 해야 합니다. 부치고 나면 검사 요청에 응할 수 없어 거절됩니다'},
+    {t:'② 체크인 · 수하물',b:'싱가포르항공 카운터 (T3 Row 5~11)\n<b>마감 07:10</b> (출발 60분 전)\n김상범 소장 비즈니스 30kg / 나머지 3인 23kg\n보조배터리·전자담배류는 위탁 불가 — 기내로'},
+    {t:'③ 출국심사 · 보안',b:'창이는 자동출국심사가 빨라 보통 10~15분입니다.\n싱가포르 T3는 <b>탑승구에서 개별 보안검사</b>를 합니다 — 게이트에 일찍 가세요\n면세구역 쇼핑 시간은 07:00~07:40 정도 잡으면 적당합니다'},
+   ],tip:'TWG 홍차, 타이거밤, 카야잼이 무난한 선물입니다. 주류는 한국 면세 한도 2병·2L·US$400까지.',
+   mapQ:'Singapore Changi Airport Terminal 3 Departure Hall'},
+
+  {time:'08:10',type:'travel',icon:'🛫',title:'귀국편 출발 SIN→ICN',
+   loc:'창이 T3 08:10 출발 → 인천 T1 15:30 도착',
+   chips:[{t:'08:10 출발',c:'b'},{t:'약 6h20m',c:'k'}],
+   lat:1.3592,lng:103.9896,zoom:12,
+   secs:[
+    {t:'비행',b:'창이 <b>08:10</b> 출발 → 인천 T1 <b>15:30</b> 도착 (약 6시간 20분)\n시차 1시간 (싱가포르가 1시간 느림)\n기내에서 여행자 세관신고는 모바일 신고로 대체 가능합니다'},
+   ],tip:'낮 비행이라 도착 후 반차 쓰지 않아도 되는 시간대입니다.',
+   mapQ:'Singapore Changi Airport Terminal 3'},
+
+  {time:'15:30',type:'travel',icon:'🏠',title:'인천공항 T1 도착 · 해산',
    loc:'인천국제공항 1터미널',chips:[{t:'출장 완료 🎉',c:'g'}],
    lat:37.4491,lng:126.4503,zoom:14,
-   secs:[{t:'도착',b:'SQ608 인천 T1 07:45 도착\n수하물 수취 → 자유 해산\n5박 6일 싱가포르 DC팀 출장 완료'}],
-   tip:'수고하셨습니다! 🎉',
+   secs:[
+    {t:'도착',b:'인천 T1 <b>15:30</b> 도착 → 입국심사 → 수하물 수취 → 세관\n보통 16:10~16:30이면 입국장을 나옵니다'},
+    {t:'주차 차량 회수',b:'<b>P5 예약주차장</b> — 입국장에서 셔틀 승차장으로 이동 → P5 하차\n주차 예약 종료가 <b>18:00</b>이라 시간은 충분하지만, 셔틀 대기까지 감안해 바로 움직이세요\n입차할 때 찍어둔 주차 위치 사진을 확인하세요'},
+   ],tip:'5박 6일 출장 완료. 귀국 후 1주일 안에 결과 보고서와 명함 정리를 권합니다.',
    mapQ:'인천국제공항 1터미널'},
  ]
 },
@@ -2744,41 +2772,35 @@ var SCENARIOS = {
       ],
       tip:'KDCEA 멤버십 가입 고려. 귀국 후 출장 결과 보고서에 네트워킹 성과 정리. 교환한 명함 CRM에 즉시 등록.'
     },
-    { type:'event', icon:'✈️', title:'심야 귀국편 — 공항 이동 시 Grab 사용', badge:'귀국', badgeColor:'#1255a0',
+    { type:'event', icon:'🚕', title:'내일 새벽 공항 이동 — 오늘 밤에 잡아두기', badge:'준비', badgeColor:'#1255a0',
       dialogs:[
-        {who:'Grab 기사', side:'left', text:'Good evening! Changi Airport Terminal 3?'},
-        {who:'류환재 선임', side:'right', text:'Yes, Terminal 3 please. We have a flight at 00:20.'},
-        {who:'Grab 기사', side:'left', text:'No problem, about 20 minutes from here. Quite smooth at this time. You have enough time.'},
-        {who:'류환재 선임', side:'right', text:'Great. Can you take the PIE expressway? We are a bit anxious about time.'},
-        {who:'Grab 기사', side:'left', text:'Of course, that is the fastest route. You will be there by 10:30 PM easily.'}
+        {who:'정재수 수석', side:'right', text:'We check out at 5:30 tomorrow morning. Can you book a taxi for us? Four people with luggage.'},
+        {who:'프론트 직원', side:'left', text:'Certainly. A maxi cab for four with large luggage — I will book it for 5:20 to be safe. It will wait at the main entrance.'},
+        {who:'정재수 수석', side:'right', text:'Thank you. Can we also settle the bill tonight, so we only need to drop the keys in the morning?'},
+        {who:'프론트 직원', side:'left', text:'Of course. I will print the folio now. In the morning just leave the keys at the counter.'},
+        {who:'정재수 수석', side:'right', text:'One more thing — could we have a wake-up call at 4:50 for all four rooms?'}
       ],
-      tip:'21:30~21:40 호텔 출발 권장. GrabCar Max 4명+짐. 카운터 마감 23:20이므로 22:00 공항 도착 목표. 면세구역에서 쇼핑 시간 약 1시간 확보 가능.'
+      tip:'새벽 5시대는 Grab이 잘 안 잡힐 때가 있습니다. 전날 밤 프론트에 콜택시를 걸어두는 게 가장 확실합니다.\n숙박비 정산을 미리 끝내두면 새벽에 키만 반납하고 바로 나갈 수 있습니다.'
     },
     { type:'tip', icon:'🛍️', title:'창이공항 면세쇼핑 꿀팁', badge:'쇼핑', badgeColor:'#2d6a4f',
       dialogs:[],
       tip:'창이공항 T3 면세구역 추천 쇼핑:\n① TWG Tea — 싱가포르 고급 차 브랜드, 선물용 최고\n② 호랑이 연고 (Tiger Balm) — 저렴하고 실용적\n③ 반얀트리 어메니티 — 호텔 감성 스킨케어\n④ 킷캣 말차·두리안 맛 — 일본·동남아 한정판\n⑤ 주류 면세 한도: 1인 1리터\n환전 잔액은 공항 내 재환전보다 귀국 후 국내 은행 활용이 유리.'
     },
-    { type:'dialog', icon:'🧳', title:'호텔 레이트 체크아웃 협상', badge:'호텔', badgeColor:'#854F0B',
-      dialogs:[
-        {who:'프론트 직원', side:'left', text:'Good evening. How can I help you?'},
-        {who:'정재수 수석', side:'right', text:'We have a late flight tonight at 00:20. Is it possible to store our luggage here until around 10 PM?'},
-        {who:'프론트 직원', side:'left', text:'Of course! We have a luggage storage facility. Just fill in this tag for each bag. You can pick them up any time.'},
-        {who:'정재수 수석', side:'right', text:'Also, is there any chance of extending one room until 10 PM to freshen up before the flight?'},
-        {who:'프론트 직원', side:'left', text:'Let me check availability. We can offer late checkout until 6 PM for SGD 50, or until midnight for half the nightly rate.'}
-      ],
-      tip:'짐 보관 서비스는 대부분 무료. 레이트 체크아웃은 빈방 상황에 따라 다름 — 체크인 당일 미리 요청하면 무료 연장 가능성 높아짐.'
+    { type:'tip', icon:'🧳', title:'마지막 밤 — 짐 싸기 순서', badge:'호텔', badgeColor:'#854F0B',
+      dialogs:[],
+      tip:'① <b>기내 반입</b>: 여권·지갑·노트북·<b>보조배터리</b>·충전기·상비약\n   보조배터리는 위탁이 안 됩니다. 캐리어에 넣으면 공항에서 다시 열어야 합니다\n② <b>위탁</b>: 옷, 면세 주류, 100ml 넘는 액체류\n   김상범 소장 30kg / 나머지 3인 23kg\n③ <b>세금환급 받을 쇼핑품</b>은 꺼내기 쉬운 위쪽에 — 공항에서 검사 요청이 올 수 있습니다\n④ 객실 금고는 <b>비어 있는지 눈으로</b> 확인. 가장 흔한 분실 경로입니다'
     },
-    { type:'risk', icon:'⚠️', title:'출국심사 대기 시간 주의', badge:'귀국', badgeColor:'#a82020',
+    { type:'risk', icon:'⚠️', title:'내일 아침이 빠듯합니다', badge:'귀국', badgeColor:'#a82020',
       dialogs:[
-        {who:'상황', side:'left', text:'심야 자정 출발 항공편 특성상 출국 대기 줄이 길 수 있음. 특히 T3는 장거리 노선 집중.'}
+        {who:'상황', side:'left', text:'08:10 출발 · 카운터 마감 07:10. 04:50 기상 → 05:30 호텔 출발 → 06:00 창이 T3 도착이 기준선입니다.'}
       ],
-      warn:'카운터 마감 23:20. 22:00 공항 도착 목표. 수하물 위탁 후 출국심사 → 보안검사 → 탑승구까지 최소 30~40분 소요. 면세쇼핑은 시간 여유 확인 후.'
+      warn:'새벽 출발이라 늦잠 한 번이 치명적입니다. 모닝콜과 각자 휴대폰 알람을 이중으로 걸어두세요.\n세금환급(GST)을 받을 거라면 <b>수하물을 부치기 전에</b> eTRS 키오스크부터 들러야 합니다 — 순서를 바꾸면 환급이 거절됩니다.'
     }
   ]},
   6: { scenarios: [
     { type:'dialog', icon:'🏠', title:'인천공항 입국 대화', badge:'귀국', badgeColor:'#1255a0',
       dialogs:[
-        {who:'상황', side:'left', text:'SQ608 07:45 인천 T1 도착. 새벽 비행으로 피로하지만 귀국 완료!'},
+        {who:'상황', side:'left', text:'인천 T1 15:30 도착. 낮 비행이라 컨디션은 괜찮습니다. 입국심사 → 수하물 수취 → P5 셔틀 순서.'},
         {who:'입국심사관', side:'left', text:'여권 주세요. 싱가포르 다녀오셨네요. 사업상 방문이셨나요?'},
         {who:'우리팀', side:'right', text:'네, 데이터센터 컨퍼런스 참석하고 왔습니다.'},
         {who:'입국심사관', side:'left', text:'수고하셨습니다. 들어가세요.'}
