@@ -1175,6 +1175,15 @@ const TR = {
      from:[1.3560743,103.9874748], to:[1.275835,103.8442824],
      body:'요금: SGD 28~40 (미터+공항할증) / 소요 25~35분\n도착홀 Taxi 줄 탑승 → "Oasia Hotel Downtown, Tanjong Pagar"\n신용카드 대부분 가능'},
   ],
+  // D0 - 저녁식사→숙소
+  d0_dinner_hotel:[
+    {id:'walk', name:'도보 (추천)', badge:'추천', bc:'#8a6a3a', mode:'walking',
+     from:[1.2805121,103.8503809], to:[1.275835,103.8442824],
+     body:'약 1.1km / 15분. 라우파삿 → Cross St → Peck Seah St 방향\n밤에도 밝고 사람이 많습니다. 첫날 동네를 익혀두기 좋은 길입니다'},
+    {id:'grab', name:'Grab', badge:'편리', bc:'#1e7e5a', mode:'driving',
+     from:[1.2805121,103.8503809], to:[1.275835,103.8442824],
+     body:'SGD 6~9 / 약 5분. 짐이 없으니 4명 한 대로 충분합니다\n기사에게: "Oasia Hotel Downtown, 100 Peck Seah Street"'},
+  ],
   // D4 - 호텔→공항
   d4_airport:[
     {id:'grab', name:'Grab (추천)', badge:'추천', bc:'#1e7e5a', mode:'driving',
@@ -1435,7 +1444,7 @@ const DAYS=[
  title:'출발 전 준비',sub:'서류 · 통신 · 업무 · 짐',
  lat:37.4491,lng:126.4503,zoom:11,checklist:true},
 {id:1,date:'9/27',wd:'일',badge:'✈️ 출발',bc:'#1255a0',
- title:'9/27 (일)',sub:'인천 출발 → 싱가포르 도착',
+ title:'9/27 (일)',sub:'인천 출발 → 창이 도착 → 체크인 → 첫날 저녁',
  lat:1.3560743,lng:103.9874748,zoom:13,lbl:'창이공항 T3',
  items:[
   {time:'07:00',type:'travel',icon:'✈️',title:'인천공항 1터미널 집결',
@@ -1468,13 +1477,34 @@ const DAYS=[
    mapQ:'Singapore Changi Airport Terminal 3 Arrival Hall',
    trKey:'d0_arrive'},
 
+  {time:'16:00',type:'travel',icon:'🏨',title:'호텔 체크인',
+   loc:'Oasia Hotel Downtown · 100 Peck Seah St, Singapore 079333',
+   chips:[{t:'5박',c:'b'},{t:'4실',c:'b'}],
+   lat:1.275835,lng:103.8442824,zoom:16,
+   secs:[
+    {t:'체크인',b:'입국·수하물에 40분 안팎 걸리니 <b>15:00경 공항 출발 → 16:00 전후 도착</b>이 보통입니다.\n예약자명과 예약확인서(또는 메일)를 프론트에 제시하세요.\n체크인 시각은 통상 15:00 이후입니다'},
+    {t:'프론트에서 미리 해둘 것',b:'① <b>10/1 밤 숙박비 정산</b> 가능한지 물어두기 — 10/2 새벽 05:30 출발입니다\n② 조식 시간·장소 확인\n③ 루프톱 수영장 이용 시간 확인 (27층)'},
+    {t:'위치',b:'Tanjong Pagar역(EW15) 도보 3분 · Maxwell역(TE18) 도보 7분\n1층에 편의점, 주변에 호커센터 다수'},
+   ],tip:'짐 풀고 한숨 돌린 뒤 저녁식사로 이동합니다. 여권은 객실 금고에 두지 말고 9/29 조호르행에 대비해 챙겨두세요.',
+   mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
+
   {time:'17:30',type:'social',icon:'🍽️',title:'팀 첫날 저녁식사',
    loc:'Tanjong Pagar 인근',chips:[{t:'도보',c:'g'}],
    lat:1.2805121,lng:103.8503809,zoom:16,
    secs:[
     {t:'추천 식당',b:'<b>라우파삿 Lau Pa Sat</b> — 도보 10분. 18 Raffles Quay. 호커센터+사테이거리.\n<b>Amoy Food Centre</b> — 도보 5분. 7 Maxwell Rd. 현지인 맛집.\n<b>Tanjong Pagar Plaza 호커센터</b> — 도보 3분. 6 Tanjong Pagar Plaza.'},
    ],tip:'SGD 현금 소액 준비 권장. 호커센터 일부 카드 불가.',
-   mapQ:'Lau Pa Sat Singapore'},
+   mapQ:'Lau Pa Sat Singapore',trKey:'d0_dinner_hotel'},
+
+  {time:'20:00',type:'travel',icon:'🏨',title:'숙소 복귀 — 첫날 마무리',
+   loc:'Oasia Hotel Downtown · 100 Peck Seah St',
+   chips:[{t:'도보 15분',c:'k'}],
+   lat:1.275835,lng:103.8442824,zoom:16,
+   secs:[
+    {t:'돌아오는 길',b:'라우파삿에서 숙소까지 <b>도보 약 1.1km / 15분</b>입니다.\n밤에도 밝고 사람이 많아 걷기 좋습니다. Grab을 쓰면 5분 · SGD 6~9'},
+    {t:'오늘 밤에 해둘 것',b:'① <b>SG Arrival Card 제출 확인</b> — 아직이면 지금\n② 내일(9/28) 자유일정 루트 정하기 — 월요일 탭에서 4개 중 선택\n③ 시차는 1시간뿐이지만 이동 피로가 있으니 일찍 쉬세요'},
+   ],tip:'내일은 공식 일정이 없는 자유일입니다. 무리하지 말고 첫날은 일찍 마무리하는 편이 낫습니다.',
+   mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
  ]
 },
 
@@ -1864,6 +1894,8 @@ var PLACE_LABEL = {
   'SQ607 출발 ICN→SIN':['싱가포르 창이공항','Singapore Changi Airport'],
   '창이공항 도착 — 입국 → 교통편':['창이공항 T3','Changi Airport T3'],
   '팀 첫날 저녁식사':['라우파삿','Lau Pa Sat'],
+  '호텔 체크인':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '숙소 복귀 — 첫날 마무리':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 출발 — 전용버스':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 출발':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 출발 → 창이공항 T3':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
