@@ -993,6 +993,21 @@ body.panel-open .leaflet-control-container{pointer-events:none;opacity:.35}
 .ck-item.on .ck-req{opacity:.4}
 .ck-note{font-size:10.5px;color:var(--t3);line-height:1.7;text-align:center;
   padding:6px 10px 0}
+/* ── 지도 지점 이름표 (한글 / 영문) ── */
+.mpin{position:relative;width:28px;height:28px}
+.mpin-d{width:28px;height:28px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);border:2.5px solid #fff}
+.mpin-l{position:absolute;top:32px;left:50%;transform:translateX(-50%);
+  white-space:nowrap;text-align:center;pointer-events:none;
+  background:rgba(255,255,255,.93);border-radius:7px;padding:3px 7px;
+  box-shadow:0 1px 5px rgba(0,0,0,.2);
+  animation:mpinIn .32s ease-out both}
+.mpin-l b{display:block;font-size:10px;font-weight:800;color:#15181c;line-height:1.3}
+.mpin-l i{display:block;font-size:8.5px;font-style:normal;color:#6a7078;
+  line-height:1.3;letter-spacing:.01em}
+@keyframes mpinIn{from{opacity:0;transform:translateX(-50%) translateY(-4px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}}
 /* ── 경로 애니메이션 선두 마커 ── */
 .route-head{width:15px;height:15px;border-radius:50%;
   border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);
@@ -1839,6 +1854,69 @@ function archLine(from,to){
 }
 
 
+
+// ── 지도 지점 이름표 — [한글, 영문] ──────────────────────────
+var PLACE_LABEL = {
+  // 일자별 일정
+  '인천공항 1터미널 집결':['인천공항 T1','Incheon Airport T1'],
+  'SQ607 출발 ICN→SIN':['싱가포르 창이공항','Singapore Changi Airport'],
+  '창이공항 도착 — 입국 → 교통편':['창이공항 T3','Changi Airport T3'],
+  '팀 첫날 저녁식사':['탄종파가','Tanjong Pagar'],
+  '호텔 출발 — 전용버스':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '호텔 출발':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '호텔 출발 → 창이공항 T3':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '호텔 복귀 · 짐 정리':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '기상 · 마지막 점검':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '싱가포르 귀환':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '저녁식사':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '팀 저녁식사':['탄종파가','Tanjong Pagar'],
+  'DCW Asia 2026 오전 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
+  'DCW Asia 2026 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
+  'DCW 마지막 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
+  'KDCEA 단체 네트워킹 행사':['마리나베이 샌즈','Marina Bay Sands'],
+  '조호바루 출발 — Tuas Second Link 국경 통과':['투아스 제2링크','Tuas Second Link'],
+  'Brightray MY-01 & MY-02 DC 투어':['이스칸다르 푸테리','Iskandar Puteri, Johor'],
+  'Schneider Electric Innovation Hub 투어':['인터내셔널 비즈니스 파크','International Business Park'],
+  '싱가포르 시내투어':['머라이언 파크','Merlion Park'],
+  '창이 T3 도착 — 체크인 · 세금환급 · 출국':['창이공항 T3','Changi Airport T3'],
+  '귀국편 출발 SIN→ICN':['창이공항 T3','Changi Airport T3'],
+  '인천공항 T1 도착 · 해산':['인천공항 T1','Incheon Airport T1'],
+  // 월요일 루트
+  '숙소 출발 — Oasia Hotel Downtown':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '숙소 출발 + Anywheel 대여':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '숙소 복귀':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '숙소 복귀 — 반납 주의':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '마리나베이 샌즈 (MBS)':['마리나베이 샌즈','Marina Bay Sands'],
+  'MBS 행사장 사전 확인':['마리나베이 샌즈','Marina Bay Sands'],
+  '가든스 바이 더 베이':['가든스 바이 더 베이','Gardens by the Bay'],
+  '가든스 바이 더 베이 — 외곽 라이딩':['가든스 바이 더 베이','Gardens by the Bay'],
+  '헬릭스 브리지':['헬릭스 브리지','Helix Bridge'],
+  '에스플러네이드 극장':['에스플러네이드','Esplanade'],
+  '래플스 플레이스 CBD':['래플스 플레이스','Raffles Place'],
+  '차이나타운 & 불아사':['차이나타운 · 불아사','Chinatown · Buddha Tooth Relic Temple'],
+  '피너클 @ 덕스턴':['피너클앳덕스턴','Pinnacle@Duxton'],
+  '술탄 모스크 & 캄퐁글람':['술탄 모스크 · 캄퐁글람','Sultan Mosque · Kampong Glam'],
+  '스리 비라마칼리암만 사원':['스리 비라마칼리암만 사원','Sri Veeramakaliamman Temple'],
+  'URA 도시갤러리':['URA 시티갤러리','URA City Gallery'],
+  'NEWater 방문자센터':['뉴워터 방문자센터','NEWater Visitor Centre'],
+  '창이 비즈니스 파크':['창이 비즈니스 파크','Changi Business Park'],
+  '라우파삿 — 출발 전 아침':['라우파삿','Lau Pa Sat'],
+  '머라이언 파크':['머라이언 파크','Merlion Park'],
+  '주빌리 브리지 → 에스플러네이드':['주빌리 브리지','Jubilee Bridge'],
+  '싱가포르 플라이어 앞':['싱가포르 플라이어','Singapore Flyer'],
+  '마리나 배러지 — 이 코스의 하이라이트':['마리나 배러지','Marina Barrage'],
+};
+
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// 지점 마커 HTML — 원형 아이콘 + 한글/영문 이름표
+function pinHTML(icon, color, label){
+  var h = '<div class="mpin"><div class="mpin-d" style="background:'+color+'">'+icon+'</div>';
+  if(label) h += '<div class="mpin-l"><b>'+esc(label[0])+'</b><i>'+esc(label[1])+'</i></div>';
+  return h + '</div>';
+}
+function labelFor(key){ return PLACE_LABEL[key] || null; }
+
 // ── 경로 그리기 애니메이션 ──────────────────────────────
 var routeAnim = null;
 
@@ -2043,27 +2121,25 @@ function drawRoute(trObj){
 
   // 출발 마커 먼저, 도착 마커는 선이 닿을 때
   curMarkers.forEach(m=>map.removeLayer(m)); curMarkers=[];
-  curMarkers.push(pinIcon(from[0],from[1],'🔵','출발',color));
+  curMarkers.push(pinIcon(from[0],from[1],'🔵','출발',color,['출발','Start']));
 
   animatePath(curLine, coords, {
-    perSeg: isLong ? 3600 : 2800,
+    perSeg: isLong ? 1800 : 1400,
     follow: true, maxZoom: 15, flyDur: 1.6, dwell: 0,
     head: makeHead(color, coords[0]),
     onReach: function(i){
       if(i === coords.length-1){
-        curMarkers.push(pinIcon(to[0],to[1],'🔴','도착',color));
+        curMarkers.push(pinIcon(to[0],to[1],'🔴','도착',color,['도착','Arrive']));
       }
     }
   });
 }
 
-function pinIcon(lat,lng,dot,lbl,color){
+function pinIcon(lat,lng,dot,lbl,color,label){
   if(!mapReady||typeof L==='undefined'||!map) return null;
   const ic=L.divIcon({className:'',
-    html:`<div style="background:${color};width:30px;height:30px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;font-size:13px;
-      box-shadow:0 2px 8px rgba(0,0,0,.3);border:3px solid #fff">${dot}</div>`,
-    iconSize:[30,30],iconAnchor:[15,15]});
+    html:pinHTML(dot,color,label),
+    iconSize:[28,28],iconAnchor:[14,14]});
   return L.marker([lat,lng],{icon:ic}).bindPopup(`<b style="font-size:11px">${lbl}</b>`).addTo(map);
 }
 
@@ -2414,12 +2490,12 @@ function drawMondayAll(route){
 
   curLine=L.polyline([pts[0]],{color:route.color,weight:4,opacity:0.85,lineCap:'round',lineJoin:'round'}).addTo(map);
   animatePath(curLine, pts, {
-    perSeg: 3800, maxMs: 13000,
-    follow: true, maxZoom: 16, flyDur: 1.3, dwell: 220,
+    perSeg: 1900, maxMs: 6500,
+    follow: true, maxZoom: 16, flyDur: 1.3, dwell: 200,
     head: makeHead(route.color, pts[0]),
     onReach: function(i){
       const sp = route.spots[i];
-      curMarkers.push(pinIcon(pts[i][0],pts[i][1],sp.icon,(i+1)+'. '+sp.name,route.color));
+      curMarkers.push(pinIcon(pts[i][0],pts[i][1],sp.icon,(i+1)+'. '+sp.name,route.color,labelFor(sp.name)));
     }
   });
 }
@@ -2553,17 +2629,15 @@ function drawDayRoute(dayIdx){
       curMarkers.push(L.marker(mid,{icon:aic,interactive:false}).addTo(map));
     }
     var ic=L.divIcon({className:'',
-      html:'<div style="background:'+c+';width:28px;height:28px;border-radius:50%;'
-        +'display:flex;align-items:center;justify-content:center;font-size:12px;'
-        +'box-shadow:0 2px 8px rgba(0,0,0,.3);border:2.5px solid #fff">'+it.icon+'</div>',
+      html:pinHTML(it.icon, c, labelFor(it.title)),
       iconSize:[28,28],iconAnchor:[14,14]});
     curMarkers.push(L.marker([it.lat,it.lng],{icon:ic}).addTo(map)
       .bindPopup('<b style="font-size:11px">'+it.time+' '+it.title+'</b>'));
   }
 
   animatePath(curLine, latlngs, {
-    perSeg: 3800, maxMs: 30000,
-    follow: true, maxZoom: 15, flyDur: 1.9, dwell: 320,
+    perSeg: 1900, maxMs: 15000,
+    follow: true, maxZoom: 15, flyDur: 1.9, dwell: 300,
     head: makeHead(color, latlngs[0]),
     onReach: placeAt
   });
