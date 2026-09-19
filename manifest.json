@@ -1,7 +1,7 @@
 {
-  "name": "싱가포르 출장 가이드 · 해안건축 DC팀",
-  "short_name": "SG 출장",
-  "description": "해안건축 DC팀 싱가포르 출장 안내 — 2026.09.27~10.02",
+  "name": "HAEAHN DC SINGAPORE VISIT",
+  "short_name": "HAEAHN DC SG",
+  "description": "HAEAHN DC SINGAPORE VISIT — 2026.09.27~10.02",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f2ed",
