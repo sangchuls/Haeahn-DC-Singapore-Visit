@@ -1853,6 +1853,7 @@ function cancelRouteAnim(){
   if(!h) return;
   routeAnim = null;
   if(h.raf) cancelAnimationFrame(h.raf);
+  if(h.timers){ for(var i=0;i<h.timers.length;i++) clearTimeout(h.timers[i]); }
   if(h.finish) h.finish();
 }
 
@@ -1866,12 +1867,21 @@ function makeHead(color, latlng){
 }
 
 // line을 pts를 따라 순차적으로 그린다
-//   opts.perSeg  구간당 ms (기본 380)
-//   opts.maxMs   전체 상한 (기본 6000)
-//   opts.total   전체 시간을 직접 지정 (perSeg/maxMs 무시)
-//   opts.head    선두 마커
-//   opts.onReach(i)  i번째 점에 도달했을 때
-//   opts.onDone()    완료
+//
+// follow=true 일 때는 구간 단위로 진행한다:
+//   ① 카메라가 그 구간이 화면에 꽉 차도록 부드럽게 이동 (flyToBounds)
+//   ② 카메라를 멈춘 채로 그 구간의 선을 그린다
+//   ③ 잠깐 쉬고 다음 구간으로
+// 그리는 동안 지도를 건드리지 않기 때문에 화면이 깜빡이지 않는다.
+// (매 프레임 setView로 줌을 다시 먹이면 타일이 매번 다시 깔려 깜빡인다)
+//
+//   opts.perSeg   구간 하나를 그리는 시간 ms
+//   opts.maxMs    선 그리는 시간 총합 상한
+//   opts.flyDur   구간 전환 카메라 이동 시간 (초)
+//   opts.dwell    구간 사이 멈춤 ms
+//   opts.maxZoom  카메라가 들어갈 수 있는 최대 줌
+//   opts.head     선두 마커
+//   opts.onReach(i) / opts.onDone()
 function animatePath(line, pts, opts){
   opts = opts || {};
   var onReach = opts.onReach || function(){};
@@ -1881,32 +1891,18 @@ function animatePath(line, pts, opts){
 
   cancelRouteAnim();
 
-  // 카메라 추적 — 선두를 따라가며 가까이 본다
-  var follow = !!opts.follow && !prefersStill() && n >= 2;
-  var userMoved = false, segZoom = null;
+  var follow = !!opts.follow && !prefersStill() && n >= 2 && mapReady;
+  var userMoved = false;
   function stopFollow(){ userMoved = true; }
 
-  // 구간마다 그 구간이 화면에 꽉 차는 줌 — 짧은 구간은 가깝게, 긴 구간은 넓게
-  var loZ = opts.minZoom || 3, hiZ = opts.maxZoom || 16;
-  function zoomFor(k){
-    if(k < 0) k = 0;
-    if(k > n-2) k = n-2;
-    var z;
-    try{ z = map.getBoundsZoom(L.latLngBounds([pts[k],pts[k+1]]).pad(0.9), false); }
-    catch(e){ return hiZ; }
-    return Math.max(loZ, Math.min(hiZ, z));
-  }
-  if(follow){
-    segZoom = [];
-    for(var k=0;k<n-1;k++) segZoom.push(zoomFor(k));
-  }
-
-  var done = false;
+  var done = false, reached = 0, timers = [];
   var handle = {
-    raf: null,
+    raf: null, timers: timers,
     finish: function(){
       if(done) return;
       done = true;
+      for(var t=0;t<timers.length;t++) clearTimeout(timers[t]);
+      timers.length = 0;
       try{ line.setLatLngs(pts); }catch(e){}
       while(reached < n-1){ reached++; onReach(reached); }
       if(head && map && map.hasLayer(head)) map.removeLayer(head);
@@ -1919,9 +1915,9 @@ function animatePath(line, pts, opts){
             // 도시 규모면 전체 동선을 한눈에, 국제선처럼 범위가 너무 넓으면
             // 줌아웃하지 않고 도착지를 가까이 보여준 채로 끝낸다
             if(bz >= (opts.overviewMinZoom||9)){
-              map.fitBounds(bb,{animate:true,duration:0.9});
+              map.flyToBounds(bb,{duration:(opts.flyDur||1.2)});
             } else {
-              map.flyTo(pts[n-1], Math.max(segZoom[n-2], opts.endZoom||11), {duration:0.9});
+              map.flyTo(pts[n-1], (opts.endZoom||11), {duration:(opts.flyDur||1.2)});
             }
           }catch(e){}
         }
@@ -1929,12 +1925,8 @@ function animatePath(line, pts, opts){
       onDone();
     }
   };
-  var reached = 0;
 
   if(n < 2){ routeAnim = handle; handle.finish(); routeAnim = null; return; }
-
-  var total = opts.total
-    || Math.min((opts.perSeg||380) * (n-1), opts.maxMs||6000);
 
   routeAnim = handle;
   line.setLatLngs([pts[0]]);
@@ -1942,42 +1934,80 @@ function animatePath(line, pts, opts){
 
   if(prefersStill()){ handle.finish(); routeAnim = null; return; }
 
-  if(follow){
-    map.setView(pts[0], segZoom[0], {animate:false});
-    map.on('dragstart', stopFollow);   // 사용자가 직접 움직이면 추적 중단
+  // 구간 하나를 그리는 시간 — 지점이 많으면 총합 상한에 맞춰 줄인다
+  var perSeg = opts.perSeg || 380;
+  var cap = opts.maxMs || 0;
+  if(cap && perSeg * (n-1) > cap) perSeg = cap / (n-1);
+  var flyDur = opts.flyDur || 1.2;
+  var dwell  = (opts.dwell === undefined) ? 240 : opts.dwell;
+
+  // ── follow 아님: 카메라 그대로 두고 한 번에 그린다 ──
+  if(!follow){
+    var total = opts.total || perSeg * (n-1);
+    var start0 = null;
+    function flat(ts){
+      if(routeAnim !== handle) return;
+      if(start0 === null) start0 = ts;
+      var t = Math.min((ts - start0)/total, 1);
+      var e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      var fp = e*(n-1), i = Math.min(Math.floor(fp), n-2), f = fp - i;
+      var cur = pts.slice(0, i+1);
+      cur.push([pts[i][0]+(pts[i+1][0]-pts[i][0])*f, pts[i][1]+(pts[i+1][1]-pts[i][1])*f]);
+      try{ line.setLatLngs(cur); }catch(err){ handle.finish(); routeAnim=null; return; }
+      if(head) head.setLatLng(cur[cur.length-1]);
+      while(reached < i){ reached++; onReach(reached); }
+      if(t < 1) handle.raf = requestAnimationFrame(flat);
+      else { handle.finish(); routeAnim = null; }
+    }
+    handle.raf = requestAnimationFrame(flat);
+    return;
   }
 
-  var start = null;
-  function frame(ts){
-    if(routeAnim !== handle) return;
-    if(start === null) start = ts;
-    var t = (ts - start) / total;
-    if(t > 1) t = 1;
-    // 출발·도착은 살짝 느리게 (ease-in-out)
-    var e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
-    var fpos = e * (n-1);
-    var i = Math.floor(fpos);
-    if(i > n-2) i = n-2;
-    var f = fpos - i;
-    var drawn = pts.slice(0, i+1);
-    drawn.push([ pts[i][0] + (pts[i+1][0]-pts[i][0])*f,
-                 pts[i][1] + (pts[i+1][1]-pts[i][1])*f ]);
-    try{ line.setLatLngs(drawn); }catch(err){ handle.finish(); routeAnim=null; return; }
-    var tip = drawn[drawn.length-1];
-    if(head) head.setLatLng(tip);
-    if(follow && !userMoved){
-      // 현재 구간 줌 → 다음 구간 줌으로 구간 후반부에 미리 옮겨간다
-      var zNow = segZoom[i];
-      var zNext = segZoom[Math.min(i+1, n-2)];
-      var blend = f < 0.5 ? 0 : (f-0.5)/0.5;
-      var zUse = zNow + (zNext - zNow) * blend;
-      try{ map.setView(tip, zUse, {animate:false}); }catch(e){}
-    }
-    while(reached < i){ reached++; onReach(reached); }
-    if(t < 1){ handle.raf = requestAnimationFrame(frame); }
-    else { handle.finish(); routeAnim = null; }
+  // ── follow: 구간 단위 ──
+  map.on('dragstart', stopFollow);
+
+  // 카메라를 구간 k가 꽉 차도록 옮긴다
+  function moveCam(k, cb){
+    if(userMoved || routeAnim !== handle){ cb(); return; }
+    try{
+      map.flyToBounds(L.latLngBounds([pts[k], pts[k+1]]).pad(0.35),
+        {duration: flyDur, maxZoom: (opts.maxZoom||16)});
+    }catch(e){ cb(); return; }
+    timers.push(setTimeout(cb, flyDur*1000 + 140));
   }
-  handle.raf = requestAnimationFrame(frame);
+
+  // 구간 k의 선을 그린다 — 이 동안 지도는 건드리지 않는다
+  function drawSeg(k, cb){
+    var start = null;
+    function fr(ts){
+      if(routeAnim !== handle) return;
+      if(start === null) start = ts;
+      var t = Math.min((ts - start)/perSeg, 1);
+      var e = t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      var cur = pts.slice(0, k+1);
+      cur.push([pts[k][0]+(pts[k+1][0]-pts[k][0])*e, pts[k][1]+(pts[k+1][1]-pts[k][1])*e]);
+      try{ line.setLatLngs(cur); }catch(err){ handle.finish(); routeAnim=null; return; }
+      if(head) head.setLatLng(cur[cur.length-1]);
+      if(t < 1){ handle.raf = requestAnimationFrame(fr); }
+      else { reached = k+1; onReach(k+1); cb(); }
+    }
+    handle.raf = requestAnimationFrame(fr);
+  }
+
+  var seg = 0;
+  function step(){
+    if(routeAnim !== handle) return;
+    if(seg >= n-1){ handle.finish(); routeAnim = null; return; }
+    var k = seg++;
+    moveCam(k, function(){
+      if(routeAnim !== handle) return;
+      drawSeg(k, function(){
+        if(routeAnim !== handle) return;
+        timers.push(setTimeout(step, dwell));
+      });
+    });
+  }
+  step();
 }
 
 // 이전 동선 보관 — 상한 초과 시 가장 오래된 것부터 제거
@@ -2016,8 +2046,8 @@ function drawRoute(trObj){
   curMarkers.push(pinIcon(from[0],from[1],'🔵','출발',color));
 
   animatePath(curLine, coords, {
-    total: isLong ? 3000 : 1900,
-    follow: true, maxZoom: 15,
+    perSeg: isLong ? 3600 : 2800,
+    follow: true, maxZoom: 15, flyDur: 1.6, dwell: 0,
     head: makeHead(color, coords[0]),
     onReach: function(i){
       if(i === coords.length-1){
@@ -2384,8 +2414,8 @@ function drawMondayAll(route){
 
   curLine=L.polyline([pts[0]],{color:route.color,weight:4,opacity:0.85,lineCap:'round',lineJoin:'round'}).addTo(map);
   animatePath(curLine, pts, {
-    perSeg: 680, maxMs: 11000,
-    follow: true, maxZoom: 16,
+    perSeg: 3800, maxMs: 13000,
+    follow: true, maxZoom: 16, flyDur: 1.3, dwell: 220,
     head: makeHead(route.color, pts[0]),
     onReach: function(i){
       const sp = route.spots[i];
@@ -2532,8 +2562,8 @@ function drawDayRoute(dayIdx){
   }
 
   animatePath(curLine, latlngs, {
-    perSeg: 760, maxMs: 12000,
-    follow: true, maxZoom: 15,
+    perSeg: 3800, maxMs: 30000,
+    follow: true, maxZoom: 15, flyDur: 1.9, dwell: 320,
     head: makeHead(color, latlngs[0]),
     onReach: placeAt
   });
