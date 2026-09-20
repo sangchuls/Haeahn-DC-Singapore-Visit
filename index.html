@@ -993,6 +993,53 @@ body.panel-open .leaflet-control-container{pointer-events:none;opacity:.35}
 .ck-item.on .ck-req{opacity:.4}
 .ck-note{font-size:10.5px;color:var(--t3);line-height:1.7;text-align:center;
   padding:6px 10px 0}
+/* ── 학습노트 탭 ── */
+.st-lock{background:var(--card);border-radius:14px;padding:26px 20px;text-align:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.07);margin-top:4px}
+.st-lock-i{font-size:34px;line-height:1}
+.st-lock-t{font-size:15px;font-weight:800;color:var(--text);margin-top:10px}
+.st-lock-s{font-size:11.5px;color:var(--t2);line-height:1.6;margin-top:7px}
+.st-pin{display:flex;gap:7px;justify-content:center;margin-top:16px}
+.st-pin input{width:112px;padding:11px;border:1.5px solid #d6dde6;border-radius:10px;
+  font-size:19px;text-align:center;letter-spacing:.35em;font-weight:700;
+  background:#fff;color:#15181c;-webkit-text-security:disc}
+.st-pin button{padding:11px 17px;border:none;border-radius:10px;background:#1a3a5c;
+  color:#fff;font-size:13px;font-weight:700;cursor:pointer}
+.st-err{font-size:11.5px;color:#a82020;font-weight:700;margin-top:10px;min-height:15px}
+.st-sec{background:var(--card);border-radius:13px;margin-bottom:11px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.st-h{display:flex;align-items:center;gap:8px;padding:12px 14px;color:#fff}
+.st-h-i{font-size:16px}
+.st-h-t{font-size:13px;font-weight:800;letter-spacing:-.01em}
+.st-body{padding:13px 14px}
+.st-lead{font-size:13px;font-weight:700;color:var(--text);line-height:1.65;
+  padding:11px 12px;background:#f2f6fb;border-radius:9px;margin-bottom:10px}
+.st-text{font-size:12px;color:var(--t2);line-height:1.75;margin-bottom:9px}
+.st-note{font-size:11.5px;color:var(--t2);line-height:1.7;padding:10px 11px;
+  background:#fff8ec;border-left:3px solid #c45e0a;border-radius:0 8px 8px 0;margin:9px 0}
+.st-num{display:flex;gap:10px;margin-bottom:12px}
+.st-num-n{font-size:15px;font-weight:800;color:#854F0B;flex-shrink:0;line-height:1.4}
+.st-num-h{font-size:12.5px;font-weight:800;color:var(--text);line-height:1.45;margin-bottom:4px}
+.st-num-b{font-size:11.5px;color:var(--t2);line-height:1.72}
+.st-tbl{width:100%;border-collapse:collapse;font-size:11px;margin:4px 0 9px}
+.st-tbl td,.st-tbl th{border:1px solid #e3e9f0;padding:7px 8px;line-height:1.5;
+  vertical-align:top;color:var(--t2)}
+.st-tbl tr:first-child td{background:#f2f6fb;font-weight:800;color:var(--text);text-align:center}
+.st-tbl td:first-child{font-weight:700;color:var(--text);white-space:nowrap}
+.st-ul{margin:2px 0 9px;padding:0;list-style:none}
+.st-ul li{font-size:11.5px;color:var(--t2);line-height:1.72;padding:4px 0 4px 15px;position:relative}
+.st-ul li:before{content:'·';position:absolute;left:4px;font-weight:800;color:#1255a0}
+.st-q{display:flex;gap:9px;align-items:flex-start;padding:10px 11px;margin-bottom:6px;
+  background:#f7f9fc;border-radius:9px;cursor:pointer;border:1px solid #e6ecf3}
+.st-q:active{opacity:.7}
+.st-q-box{width:17px;height:17px;border:2px solid #c3ccd8;border-radius:5px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;margin-top:1px}
+.st-q.on{background:#eef7f1;border-color:#bfe0cc}
+.st-q.on .st-q-box{background:#1e7e5a;border-color:#1e7e5a;color:#fff}
+.st-q-t{font-size:12px;color:var(--text);line-height:1.6}
+.st-q.on .st-q-t{color:var(--t3);text-decoration:line-through}
+.st-reset{width:100%;padding:10px;margin-top:6px;border:1px solid #dde5ef;border-radius:10px;
+  background:var(--card);font-size:11.5px;color:var(--t2);font-weight:700;cursor:pointer}
 /* ── 지도 지점 이름표 (한글 / 영문) ── */
 .mpin{position:relative;width:28px;height:28px}
 .mpin-d{width:28px;height:28px;border-radius:50%;display:flex;
@@ -1213,9 +1260,12 @@ const TR = {
   ],
   // D3 - MBS→Schneider
   bus_mbs_sch:[
-    {id:'bus', name:'전용버스', badge:'단체', bc:'#888', mode:'driving',
-     from:[1.282088,103.8587715], to:[1.3249723,103.7463454],
-     body:'MBS → Schneider Innovation Hub 전용버스 이동'},
+    {id:'grab', name:'Grab (추천)', badge:'추천', bc:'#1e7e5a', mode:'driving',
+     from:[1.282088,103.8587715], to:[1.3127669,103.8666933],
+     body:'약 4km / 12~15분 / S$10~14\n기사에게: "Schneider Electric, 50 Kallang Avenue"\n4명이면 한 대로 충분합니다 — 13:45 집결이라 이 편이 확실합니다'},
+    {id:'mrt', name:'MRT', badge:'저렴', bc:'#1255a0', mode:'transit',
+     from:[1.282088,103.8587715], to:[1.3127669,103.8666933],
+     body:'Bayfront(CE1/DT16) → Lavender(EW11) 환승 → 도보 10분 / 약 30분 / S$1.5\n시간이 빠듯하면 권하지 않습니다'},
   ],
 };
 
@@ -1239,7 +1289,8 @@ const TR = {
 // Brightray MY-01/MY-02 (Sedenak Tech Park, Kulai): 1.7008011, 103.4154865
 // 출처: datacenterHawk / datacentermap — 등록주소 PTD 35322, Jalan Digital 11,
 //       Kawasan Perindustrian Kulai. 정확한 게이트 위치는 주최측 확인 필요
-// Schneider Innovation Hub SG (25 International Business Park): 1.3249723, 103.7463454 ✓
+// Schneider Innovation Hub SG (50 Kallang Ave, S339505): 1.3127669, 103.8666933
+// 출처: KDCEA 참관단 안내 공문 (KDCEA-2026-031, 2026.06.18)
 // Merlion Park: 1.2868, 103.8545 ✓
 
 
@@ -1324,6 +1375,16 @@ var FOOD = [
        lat:1.2805168,lng:103.8714399},
     ]},
 
+  { cat:'멀어도 한 번은 — 뉴튼', icon:'🌃', color:'#a82020',
+    note:'호텔에서 MRT 15분. 저녁 한 끼를 제대로 쓸 만한 곳입니다.',
+    items:[
+      {n:'뉴튼 푸드센터', en:'Newton Food Centre', addr:'500 Clemenceau Ave N, S229495',
+       walk:'Newton역(NS21/DT11) 도보 3분 · 호텔에서 MRT 15분', open:'대체로 12:00~02:00 (노점마다 다름)', price:'S$8~25',
+       d:'<b>고층 빌딩 숲 한가운데 남은 단층 야시장.</b>\n주변이 전부 고밀 개발로 바뀌는 동안 이 블록만 1970년대 단층 구조 그대로입니다. 지붕만 얹은 개방형 평면에 노점이 열 지어 있고, 밤이 되면 천막 조명이 켜집니다.\n용적률로 보면 말이 안 되는 땅 쓰임인데, 그게 남아 있다는 것 자체가 싱가포르가 호커 문화를 어떻게 다루는지 보여줍니다. <b>2020년 유네스코 무형문화유산</b> 등재.\n\n사테이·바비큐 치킨윙·칠리크랩·오징어구이가 강합니다.',
+       tip:'⚠️ <b>호객하는 노점은 피하세요.</b> 관광객 상대 바가지로 오래 문제가 됐던 곳입니다. 메뉴판에 가격이 적혀 있고 호객하지 않는 집을 고르세요.\n해산물은 주문 전에 <b>총액을 반드시 확인</b>하세요 — 시가(market price) 표기가 많습니다.\n밤 8시 이후가 분위기가 가장 좋습니다.',
+       lat:1.3119888,lng:103.8395742},
+    ]},
+
   { cat:'알아두면 좋은 것', icon:'💡', color:'#854F0B',
     note:'',
     items:[
@@ -1352,7 +1413,7 @@ var CHECKLIST = [
       {id:'p1', t:'여권 유효기간 확인', d:'2027년 4월 이후 만료여야 안전 (싱가포르·말레이시아 모두 6개월 이상 요구)', critical:true},
       {id:'p2', t:'여권 사본 촬영 → 폰에 저장', d:'분실 대비. 클라우드에도 백업'},
       {id:'p3', t:'DCW Asia 2026 등록 확인', d:'등록 확인 메일의 QR 코드를 폰에 저장 또는 캡처'},
-      {id:'p4', t:'항공권 e-티켓 확인 — 귀국편 시각 주의', d:'싱가포르항공\n<b>9/27(일)</b> 인천 09:00 → 싱가포르 14:20\n<b>10/2(금)</b> 싱가포르 08:10 → 인천 15:30\n귀국편이 <b>오전</b>입니다. e-티켓의 편명과 시각을 직접 대조하세요', critical:true},
+      {id:'p4', t:'항공권 e-티켓 확인 — 귀국편 시각 주의', d:'싱가포르항공\n<b>9/27(일) SQ607</b> 인천 09:00 → 싱가포르 14:20\n<b>10/2(금) SQ606</b> 싱가포르 08:10 → 인천 15:30\n귀국편이 <b>오전</b>입니다. e-티켓의 편명과 시각을 직접 대조하세요', critical:true},
       {id:'p5', t:'호텔 예약 확인서', d:'Oasia Hotel Downtown · 5박 · 4실 · 입국심사에서 물어볼 수 있음'},
       {id:'p6', t:'여행자보험 가입', d:'출장 규정 확인 후 회사 단체보험 또는 개인 가입'},
     ]},
@@ -1368,7 +1429,7 @@ var CHECKLIST = [
 
   { group:'D-3 · 입국 신고 (SGAC · MDAC)', icon:'🛂', color:'#a82020',
     items:[
-      {id:'e1', t:'SG Arrival Card 제출 — 9/25부터', d:'도착일 포함 3일 전부터 제출할 수 있습니다. 9/27 도착이니 <b>9/25</b>부터 열립니다.\n공식 창구는 <b>ica.gov.sg</b>와 MyICA 앱 두 곳뿐이고 <b>무료</b>입니다.\n검색광고에 뜨는 대행 사이트는 같은 걸 해주면서 수수료를 받습니다 — 주소가 ica.gov.sg로 끝나는지 확인하세요.\n전자 건강신고서가 함께 들어갑니다. <b>4명 각자</b> 제출해야 합니다.', critical:true},
+      {id:'e1', t:'SG Arrival Card 제출 — 9/25부터', d:'<b>입국 72시간 전부터</b> 신청할 수 있습니다. 9/27 도착이니 <b>9/25</b>부터 열립니다.\nKDCEA 공문에도 \"입국 전 SG Arrival Card 발급이 반드시 필요\"하다고 명시돼 있습니다.\n공식: <b>eservices.ica.gov.sg/sgarrivalcard</b> 또는 MyICA 앱 · <b>무료</b>\n검색광고에 뜨는 대행 사이트는 같은 걸 해주면서 수수료를 받습니다 — 주소가 ica.gov.sg로 끝나는지 확인하세요.\n전자 건강신고서가 함께 들어갑니다. <b>4명 각자</b> 제출해야 합니다.', critical:true},
       {id:'e2', t:'MDAC 제출 — 9/29 조호바루용, 9/26부터', d:'말레이시아도 디지털 입국카드(MDAC)가 필요합니다. <b>육로 국경(Tuas Second Link)도 대상</b>입니다.\n도착 3일 전부터 제출 — 9/29 입국이니 <b>9/26</b>부터.\n공식: imigresen-online.imi.gov.my/mdac · <b>무료</b>\n한국 여권은 면제 대상이 아닙니다. 4명 전원 필요합니다.', critical:true},
     ]},
 
@@ -1378,6 +1439,8 @@ var CHECKLIST = [
       {id:'w2', t:'DCW 세션 일정 확인 및 관심 세션 표시', d:'키노트·아시아 시장 세션·AI DC 트렌드 위주로'},
       {id:'w3', t:'DC 투어 질문 리스트 정리', d:'PUE / 냉각 방식 / 전력 이중화 / 방화구획 / 운영인력 — 현장에서 바로 물어볼 것'},
       {id:'w4', t:'Schneider 질문 준비', d:'담당 프로젝트의 EPMS·BMS·DCIM 요구사항과 연계해 구체적으로'},
+      {id:'w5', t:'⚠️ 투어 참가 인원 확인 — 회원사별 2명 제한', d:'Brightray(9/29)·Schneider(9/30) 투어 모두 KDCEA 안내상 <b>회원사별 최대 2명</b>입니다.\n우리는 4명이라 <b>전원 참가가 안 될 수 있습니다.</b>\n황현진 책임(010-3016-0183)에게 확정 인원을 먼저 확인하세요. 못 가는 인원은 그 시간에 행사장에 남거나 별도 일정을 잡아야 합니다', critical:true},
+      {id:'w6', t:'참관단 확정 이메일 확인', d:'· 조호르 출입국 서류·사전등록 절차\n· <b>DC 출입용 사전 정보 제출</b> 및 보안 유의사항\n· Schneider Innovation Hub 출입 등록\n모두 확정 이메일로 별도 안내됩니다. 미제출 시 현장에서 막힐 수 있습니다', critical:true},
       {id:'w5', t:'회사 소개 한 줄 영어로 정리', d:'"Korean architects specializing in hyperscale data centre design"'},
       {id:'w6', t:'노트북·태블릿 충전 및 자료 동기화', d:'오프라인에서도 볼 수 있게 도면·자료 로컬 저장'},
     ]},
@@ -1427,6 +1490,16 @@ var CHECKLIST = [
       {id:'pk4', t:'P5 → 제1터미널 셔틀 탑승', d:'P5는 장기주차 구역이라 터미널까지 전용 셔틀버스를 탑니다. 주차 후 셔틀 승차장 위치를 확인하세요\n문의 032-741-6017'},
       {id:'pk5', t:'주차 위치 사진 찍어두기', d:'6일 뒤에 찾습니다. 구역 번호와 기둥 표시를 찍어두면 확실합니다'},
       {id:'pk6', t:'10/2 출차 — 18:00 이전', d:'인천 <b>15:30</b> 도착 → 입국심사·수하물 약 40분 → P5 셔틀.\n보통 17시 전후에 출차하게 됩니다. 예약 종료가 18:00이라 여유가 아주 크진 않으니 입국장을 나오면 바로 셔틀로 이동하세요', critical:true},
+    ]},
+
+  { group:'연락처 — 폰에 저장', icon:'📞', color:'#a82020',
+    items:[
+      {id:'c1', t:'KDCEA 사무국 — 현장 문의 1순위', d:'<b>황현진 책임</b> 010-3016-0183 · harryhwang@kdcea.or.kr\n<b>송준화 국장</b> 010-9402-1028 · jhsong@kdcea.or.kr\n참관단 일정·투어 참가·집결 관련은 여기로', critical:true},
+      {id:'c2', t:'여행사 MAI Travel — 항공·숙박', d:'<b>김현모 부장</b> 010-2411-3116 · mai_travel_com@naver.com\n항공 변경, 호텔 문제는 여기로'},
+      {id:'c2b', t:'우진기전 — 별도 참관단', d:'<b>박경원 이사</b> 010-8961-4461 · parkkw@woojinelect.co.kr\n<b>황순철 전무</b> 010-6899-7795 · hsc@woojinelect.co.kr\n우진기전도 같은 행사에 참관단을 보냅니다. 전용버스 좌석 협의 가능하다고 했으니, KDCEA 투어에서 빠지는 인원이 생기면 이쪽에 문의해보세요'},
+      {id:'c3', t:'영사콜센터 — 24시간', d:'<b>+82-2-3210-0404</b> (해외에서 유료)\n여권 분실·사건사고·긴급 통역. 연중무휴 24시간입니다\n주싱가포르 대사관 번호는 <b>sg.mofa.go.kr</b>에서 출발 전 확인해 함께 저장해두세요'},
+      {id:'c4', t:'호텔 · 현지 긴급번호', d:'Oasia Hotel Downtown +65 6812 6900\n싱가포르 경찰 <b>999</b> · 구급/소방 <b>995</b>\n말레이시아(9/29) 긴급 <b>999</b>'},
+      {id:'c5', t:'팀 4명 번호 로밍 상태로 저장', d:'김상범 소장 · 정재수 수석 · 임상철 책임 · 류환재 선임\n국제전화 형식(+82 10-...)으로 저장해두면 현지에서 바로 걸립니다'},
     ]},
 
   { group:'9/27 당일 아침', icon:'🛫', color:'#1255a0',
@@ -1513,34 +1586,43 @@ const DAYS=[
  lat:1.2834,lng:103.8607,zoom:13,lbl:'마리나베이 일대',
  monday:true,
  routes:[
-  {id:'A',name:'도시건축',color:'#1a3a5c',time:'6h',dist:'MRT+도보',gmode:'transit',
-   desc:'MBS·가든스·에스플러네이드 랜드마크 건축 답사',
+  {id:'A',name:'도시건축',color:'#1a3a5c',time:'7.5h',dist:'MRT+도보',gmode:'transit',
+   desc:'MBS 내부 공간설계 → 애플스토어 → 가든스 → CBD → 캐피타스프링',
    lat:1.2834,lng:103.8607,
    spots:[
     {num:0,icon:'🏨',name:'숙소 출발 — Oasia Hotel Downtown',time:'09:00',dur:'—',how:'로비 집합 → MRT 또는 Grab',lat:1.275835,lng:103.8442824,
      desc:'100 Peck Seah St, Singapore 079333.\n<b>가장 가까운 역</b>\n· Tanjong Pagar역 (EW15, 초록) — 도보 3분\n· Maxwell역 (TE18, 갈색) — 도보 7분\n\n<b>첫 목적지 마리나베이 샌즈까지</b>\n· MRT: Maxwell(TE18) → Marina Bay(TE20) → CC선 환승 → Bayfront(CE1) · 약 20분 · S$1.5\n· Grab: 약 10분 · S$9~13 (4명이면 이 편이 낫습니다)',
-     tip:'아래 <b>이 구간 길찾기</b>에서 실시간 경로를 확인하세요.\n아침 9시대는 출근 시간과 겹칩니다 — MRT가 붐빌 수 있습니다.'},
-    {num:1,icon:'🏢',name:'마리나베이 샌즈 (MBS)',time:'09:30',dur:'60분',how:'MRT CC/DT → Bayfront역 (CE1/DT16) 도보 3분',lat:1.2837575,lng:103.8591065,
+     tip:'<b>출발하기 전에 건물부터 보세요.</b> 묵고 계신 오아시아 호텔 다운타운이 WOHA 설계(2016)입니다. 붉은 알루미늄 메시에 덩굴이 타고 올라가는 외피, 중간중간 통째로 비운 스카이테라스 — 열대기후 고층 건물의 대표 해법으로 꼽힙니다. 27층 루프톱에서 단면이 어떻게 뚫려 있는지 보입니다.\n\n아침 9시대는 출근 시간과 겹칩니다 — MRT가 붐빌 수 있습니다.'},
+    {num:1,icon:'🏢',name:'마리나베이 샌즈 (MBS)',time:'09:30',dur:'45분',how:'MRT CC/DT → Bayfront역 (CE1/DT16) 도보 3분',lat:1.2837575,lng:103.8591065,
      desc:'모쉐 사프디 설계. 3개 타워 위 캔틸레버 스카이파크 343m. <b>내일 DCW 행사장</b> — Sands Expo & Convention Centre 위치 사전 파악 필수.',
      tip:'지상층 내부 자유입장. Sands Expo는 Tower 3 방향 연결통로 이용.'},
-    {num:2,icon:'🌿',name:'가든스 바이 더 베이',time:'11:00',dur:'90분',how:'MBS에서 도보 10분 (연결 footbridge)',lat:1.2816,lng:103.8636,
+    {num:2,icon:'💧',name:'더 샵스 — 수공간과 길찾기',time:'10:15',dur:'45분',how:'MBS 타워에서 내부 연결 (도보 3분)',lat:1.2836889,lng:103.8591846,
+     desc:'<b>쇼핑몰이 아니라 실내 도시</b>로 보고 들어가세요.\n· <b>천창</b>으로 지하 2개 층까지 자연광을 끌어내립니다\n· <b>레인 오큘러스</b> — 지름 22m 아크릴 보울에서 물이 소용돌이치며 떨어집니다. Ned Kahn 작품\n· 지하를 관통하는 <b>운하(삼판보트)</b>가 동선의 축\n\n핵심은 <b>길찾기</b>입니다. 사인물이 아니라 빛·물·소리가 기준점 역할을 합니다 — 폭포 소리가 들리면 중앙에 가까워진 겁니다.',
+     tip:'무료. 레인 오큘러스는 B2에서 올려다보고, L1에서 내려다보는 두 시점이 완전히 다릅니다.\n지하에서 방향을 잃었을 때 사람들이 무엇을 보고 움직이는지 관찰해보세요.'},
+    {num:3,icon:'🍎',name:'애플 마리나베이 샌즈',time:'11:00',dur:'30분',how:'더 샵스 B2에서 연결통로 도보 5분',lat:1.2832991,lng:103.8575597,
+     desc:'<b>물 위에 떠 있는 유리 돔.</b> Foster + Partners 설계, 2020년 개장.\n판테온의 오쿨루스를 현대 유리구조로 번안했습니다 — 돔 정점에 원형 개구부를 두고 그 빛을 중심으로 평면을 구성.\n· 114장 곡면 유리 패널 · 구조 부재를 유리 안쪽으로 숨긴 자립 돔\n· 내부에서 <b>360도 수변 전경</b>\n· 반사·투과를 섞어 안팎의 경계를 흐립니다',
+     tip:'월요일 10:00~22:00. 물건 안 사도 자유롭게 들어갑니다.\n지하에서 진입해 에스컬레이터로 올라오면 돔이 서서히 드러납니다 — 이 접근 시퀀스가 설계의 핵심이니 지상으로 바로 가지 마세요.'},
+    {num:4,icon:'🌿',name:'가든스 바이 더 베이',time:'11:45',dur:'90분',how:'애플스토어에서 도보 12분 (연결 footbridge)',lat:1.2816,lng:103.8636,
      desc:'슈퍼트리 18개(최대 50m). Wilkinson Eyre+Grant Associates. 친환경 OCBC Skyway 22m 공중 보행로.',
      tip:'클라우드포레스트 SGD 12 / 플라워돔 SGD 12. 낮엔 수퍼트리쇼 없음 — 구조 관찰 집중.'},
-    {num:3,icon:'🌉',name:'헬릭스 브리지',time:'12:30',dur:'20분',how:'도보 8분',lat:1.2874774,lng:103.8606326,
+    {num:5,icon:'🌉',name:'헬릭스 브리지',time:'13:20',dur:'20분',how:'도보 8분',lat:1.2874774,lng:103.8606326,
      desc:'DNA 이중나선 구조 강교 280m. Cox Architecture + Arup 설계. 보행교+조형물 겸용.',
      tip:'외부 무료 접근. 구조 디테일 근접 촬영 포인트.'},
-    {num:4,icon:'🎭',name:'에스플러네이드 극장',time:'13:00',dur:'30분',how:'도보 8분',lat:1.2897,lng:103.8554,
+    {num:6,icon:'🎭',name:'에스플러네이드 극장',time:'13:45',dur:'30분',how:'도보 8분',lat:1.2897,lng:103.8554,
      desc:'DP Architects + Michael Wilford. 알루미늄 선쉐이드 삼각 패널 7,162개. 두리안 형태. 열대기후 대응 외피 전략.',
      tip:'내부 로비 자유입장. 외피 디테일 근접 촬영 필수.'},
-    {num:5,icon:'🏙️',name:'래플스 플레이스 CBD',time:'14:00',dur:'60분',how:'도보 10분 또는 MRT EW → Raffles Place (EW14)',lat:1.2833,lng:103.8516,
+    {num:7,icon:'🏙️',name:'래플스 플레이스 CBD',time:'14:30',dur:'60분',how:'도보 10분 또는 MRT EW → Raffles Place (EW14)',lat:1.2833,lng:103.8516,
      desc:'SOM·I.M.Pei 대작 밀집. OUB Centre(280m) / OCBC Centre / UOB Plaza. 싱가포르 금융 중심.',
      tip:'저층부 공공공간·필로티 처리 방식 관찰.'},
-    {num:6,icon:'🏨',name:'숙소 복귀',time:'15:00',dur:'—',how:'MRT EW선 또는 Grab',lat:1.275835,lng:103.8442824,
+    {num:8,icon:'🌱',name:'캐피타스프링 스카이가든 (51F)',time:'15:30',dur:'45분',how:'래플스 플레이스에서 도보 2분',lat:1.2838605,lng:103.8500779,
+     desc:'<b>88 Market St · BIG + Carlo Ratti · 280m</b>\n· <b>17~20층 Green Oasis</b> — 네 개 층을 통째로 비우고 수직 정원을 넣었습니다. 구조체가 그 구간에서 어떻게 우회하는지가 볼거리\n· <b>51층 Sky Garden</b> — 세계에서 가장 높은 도시형 농장. 360도 전망\n\n고밀도 CBD에서 용적을 비워 공공공간을 만든 사례입니다. 싱가포르 도시설계 인센티브(LUSH)가 어떻게 형태로 나타나는지 보여줍니다.',
+     tip:'⚠️ <b>사전예약 필수 — 지금 하세요.</b> 예약은 방문 2주 전부터 열립니다.\n· 예약하면 <b>무료</b>, 워크인은 S$10 (음료 1잔 포함)\n· 개방 <b>월~금 08:30~10:30 / 14:30~18:00</b> · <b>토·일 휴관</b>\n· 예약은 CapitaSpring 홈페이지 (Sevenrooms 연동)\n월요일 오후 슬롯이 이 루트와 정확히 맞습니다.'},
+    {num:9,icon:'🏨',name:'숙소 복귀',time:'16:30',dur:'—',how:'MRT EW선 또는 Grab',lat:1.275835,lng:103.8442824,
      desc:'래플스 플레이스에서 숙소까지\n· MRT: Raffles Place(EW14) → Tanjong Pagar(EW15) 한 정거장 → 도보 3분 · 약 8분\n· 도보: 약 15분 (CBD 저층부를 보며 걷기 좋습니다)\n· Grab: 약 6분 · S$6~8',
-     tip:'저녁까지 시간이 남으면 맛집 탭의 <b>1~2시간 남았을 때</b>를 참고하세요.\nURA 도시갤러리가 호텔에서 도보 7분입니다 (월~토 17시까지).'},
+     tip:'저녁은 <b>뉴튼 푸드센터</b>를 권합니다 — 고층 빌딩 숲 한복판에 단층 야시장이 그대로 남아 있습니다. 맛집 탭에 정리해뒀습니다.\nURA 도시갤러리가 호텔에서 도보 7분입니다 (월~토 17시까지).'},
    ]},
-  {id:'B',name:'문화·역사',color:'#2d6a4f',time:'6h',dist:'MRT+도보',gmode:'transit',
-   desc:'차이나타운·캄퐁글람·리틀인디아 다민족 도시조직 탐방',
+  {id:'B',name:'문화·역사',color:'#2d6a4f',time:'7h',dist:'MRT+도보',gmode:'transit',
+   desc:'차이나타운 → WOHA 두 건물 → 캄퐁글람·리틀인디아',
    lat:1.2817,lng:103.8443,
    spots:[
     {num:0,icon:'🏨',name:'숙소 출발 — Oasia Hotel Downtown',time:'09:00',dur:'—',how:'로비 집합 → 도보 또는 MRT 1정거장',lat:1.275835,lng:103.8442824,
@@ -1549,35 +1631,39 @@ const DAYS=[
     {num:1,icon:'🏯',name:'차이나타운 & 불아사',time:'09:30',dur:'60분',how:'MRT NE4/DT19 → Chinatown역 도보 3분',lat:1.2817,lng:103.8443,
      desc:'Buddha Tooth Relic Temple. 당나라 양식 재해석 4층 사원. 인근 쇼프하우스 5피트웨이(케오 레인) 도시조직 보존.',
      tip:'맥스웰 푸드센터 바로 옆 — 현지인 인기 식당. 중식 해결 가능.'},
-    {num:2,icon:'🏗️',name:'피너클 @ 덕스턴',time:'10:45',dur:'45분',how:'도보 5분 (Cantonment Rd)',lat:1.2778671,lng:103.8410265,
+    {num:2,icon:'🌳',name:'파크로열 컬렉션 피커링',time:'10:45',dur:'30분',how:'차이나타운에서 도보 6분',lat:1.2857588,lng:103.8460409,
+     desc:'<b>3 Upper Pickering St · WOHA · 2013</b>\n층마다 얹힌 곡면 공중정원이 이 건물의 전부입니다. 녹지 면적이 대지 면적의 <b>2배</b>가 넘습니다 — 싱가포르 LUSH 정책이 노린 그림 그대로입니다.\n· 4개 층마다 반복되는 스카이가든 슬래브\n· 곡면 콘크리트 루버 — 형틀 제작 방식을 보세요\n· 지상부를 비워 공원과 연결한 저층부 처리',
+     tip:'투숙객이 아니어도 로비와 5층 테라스는 들어갈 수 있습니다. 조심스럽게 둘러보세요.\n오아시아 호텔과 같은 WOHA 작품이라 <b>두 건물을 비교</b>하면 재미있습니다 — 같은 전략을 호텔 유형에 다르게 푼 사례입니다.',
+     mapQ:'PARKROYAL COLLECTION Pickering Singapore'},
+    {num:3,icon:'🏗️',name:'피너클 @ 덕스턴',time:'11:30',dur:'45분',how:'도보 5분 (Cantonment Rd)',lat:1.2778671,lng:103.8410265,
      desc:'ARC Studio Architecture. 50층 HDB 7개 동. 26층·50층 스카이브리지 연결. 싱가포르 공공주택 최고 성취작.',
      tip:'옥상 스카이브리지 SGD 6. 전망 훌륭.'},
-    {num:3,icon:'🕌',name:'술탄 모스크 & 캄퐁글람',time:'12:00',dur:'60분',how:'MRT EW12/DT14 → Bugis역 도보 7분',lat:1.3022854,lng:103.8589636,
+    {num:4,icon:'🕌',name:'술탄 모스크 & 캄퐁글람',time:'12:45',dur:'60분',how:'MRT EW12/DT14 → Bugis역 도보 7분',lat:1.3022854,lng:103.8589636,
      desc:'1928년 황금 돔 술탄 모스크. 하지 레인 헤리티지 숍하우스 거리. 말레이·아랍 문화권 역사지구.',
      tip:'Arab Street 말레이 식당 — 중식 추천.'},
-    {num:4,icon:'🛕',name:'스리 비라마칼리암만 사원',time:'13:30',dur:'45분',how:'MRT NE7/CC1 → Little India역 도보 3분',lat:1.3078878,lng:103.85248,
+    {num:5,icon:'🛕',name:'스리 비라마칼리암만 사원',time:'14:00',dur:'45분',how:'MRT NE7/CC1 → Little India역 도보 3분',lat:1.3078878,lng:103.85248,
      desc:'드라비다 양식. 고푸람(탑문) 신상 조각 집약. 세랑군 로드 인도계 도시조직.',
      tip:'입장 시 신발 탈착. 어깨 가리기.'},
-    {num:5,icon:'🏛️',name:'URA 도시갤러리',time:'14:30',dur:'60분',how:'MRT EW15 → Tanjong Pagar역 도보 5분',lat:1.2798527,lng:103.845058,
+    {num:6,icon:'🏛️',name:'URA 도시갤러리',time:'15:00',dur:'60분',how:'MRT EW15 → Tanjong Pagar역 도보 5분',lat:1.2798527,lng:103.845058,
      desc:'1:400 싱가포르 전체 도시모형. 도시재개발청 전시관. 마스터플랜 총람.',
      tip:'무료입장. 월~토 09:00~17:00. DC 용도지역 현황 파악에 최적.'},
-    {num:6,icon:'🏨',name:'숙소 복귀',time:'15:45',dur:'—',how:'도보 5분',lat:1.275835,lng:103.8442824,
+    {num:7,icon:'🏨',name:'숙소 복귀',time:'16:15',dur:'—',how:'도보 5분',lat:1.275835,lng:103.8442824,
      desc:'URA 도시갤러리(45 Maxwell Rd)에서 숙소까지 <b>도보 5분</b>입니다.\n이 루트는 마지막 지점이 숙소 바로 옆이라 복귀가 편합니다.',
      tip:'도착 후 저녁 전까지 쉬거나, 덕스턴힐 숍하우스 거리(도보 5분)를 더 둘러봐도 좋습니다.'},
    ]},
   {id:'C',name:'인프라·DC',color:'#854F0B',time:'6h',dist:'MRT+버스',gmode:'transit',
-   desc:'DC팀 특화 — 데이터센터·인프라 시설 답사',
+   desc:'열대기후 DC의 물·전력·규제 — 행사 전 예습용',
    lat:1.3346,lng:103.9654,
    spots:[
     {num:0,icon:'🏨',name:'숙소 출발 — Oasia Hotel Downtown',time:'08:45',dur:'—',how:'로비 집합 → MRT 또는 Grab',lat:1.275835,lng:103.8442824,
      desc:'100 Peck Seah St, Singapore 079333.\n<b>첫 목적지 NEWater 방문자센터까지</b> — 이 루트는 이동 거리가 깁니다\n· MRT+버스: Tanjong Pagar(EW15) → Tanah Merah(EW4) → 버스 · 약 55분 · S$2\n· Grab: 약 25분 · S$18~25 (4명이면 1인당 S$5~6, 시간을 크게 아낍니다)\n\n오늘은 동선이 길어 <b>Grab을 권합니다.</b>',
      tip:'첫 일정이 09:30이라 08:45에는 나서야 여유가 있습니다.\n아래 길찾기로 실시간 소요시간을 확인하고 정하세요.'},
     {num:1,icon:'💧',name:'NEWater 방문자센터',time:'09:30',dur:'75분',how:'Tanah Merah역(EW4) → 버스 약 10분 / Grab 25분',lat:1.3242462,lng:103.9586772,
-     desc:'하수→음용수 재처리 시설. 싱가포르 물 자립 전략 핵심. DC 냉각수 재활용 개념 연계.',
-     tip:'무료입장 / 예약 불필요 / 월~토 09:00~17:00.'},
+     desc:'하수를 역삼투·UV로 재처리해 산업용수·음용수로 되돌리는 시설. 싱가포르 물 자립 전략의 핵심입니다.\n\n<b>왜 DC팀이 여기를 보는가</b>\n액체냉각으로 가면 DC는 <b>물을 쓰는 건물</b>이 됩니다. 보충수(make-up water) 수질·수량이 설계 조건이 되고, 수처리 설비 공간이 새로 필요해집니다.\n싱가포르는 물이 비싸고 귀한데 PUE 1.25를 요구합니다. 그 모순을 NEWater로 푸는 구조입니다 — DC가 재처리수를 쓰는 전제 위에 정책이 서 있습니다.\n한국에서 같은 규모의 액냉 DC를 계획할 때 <b>보충수를 어디서 받을 것인가</b>가 부지 선정 조건이 된다는 걸 먼저 체감해두면 좋습니다.',
+     tip:'무료입장 / 예약 불필요 / 월~토 09:00~17:00.\n전시관에서 수질 기준(전도도·경도) 수치를 메모해두면 냉각수 사양 논의에 바로 씁니다.'},
     {num:2,icon:'💼',name:'창이 비즈니스 파크',time:'11:00',dur:'60분',how:'NEWater에서 차로 5분 · 버스 10분 (1.5km)',lat:1.3346,lng:103.9654,
-     desc:'Singtel·DBS·IBM DC 밀집 클러스터. 저층 대용량 전력 공급 인프라. IT기업 200여개 입주.',
-     tip:'외형·외장재·환기구·전력 인입 디테일 관찰 포인트.'},
+     desc:'Singtel·DBS·IBM 등 DC가 밀집한 클러스터. IT기업 200여 개가 입주해 있습니다.\n\n<b>밖에서 볼 수 있는 것</b>\n· <b>무창 파사드</b> — 개구부가 거의 없는 입면을 어떻게 처리했나\n· <b>환기·배열구 위치와 크기</b> — 공랭 세대 건물의 흔적입니다. 액냉으로 가면 이 면적이 줄고 대신 배관·플랜트가 늘어납니다\n· <b>전력 인입부</b> — 수전 설비와 건물의 접합\n· <b>부지 여유</b> — 증설을 어떻게 남겨뒀나\n\n대부분 공랭 시대에 지어진 건물들입니다. <b>이 건물들이 AI 부하를 받으려면 무엇을 바꿔야 하는가</b>를 생각하며 보면 내일부터의 행사가 다르게 보입니다.',
+     tip:'보안시설이라 내부는 못 들어갑니다. 외부에서만 관찰하고, 정문·경계부 촬영은 피하세요.\n외장재와 환기구 디테일은 멀리서 줌으로 찍으면 충분합니다.'},
     {num:3,icon:'🗺️',name:'URA 도시갤러리',time:'12:30',dur:'60분',how:'MRT EW15 → Tanjong Pagar역 도보 5분',lat:1.2798527,lng:103.845058,
      desc:'1:400 싱가포르 도시모형. 마스터플랜 총람. DC 용도지역 현황.',
      tip:'무료입장.'},
@@ -1632,7 +1718,7 @@ const DAYS=[
 },
 
 {id:3,date:'9/29',wd:'화',badge:'🏢 DC투어',bc:'#c45e0a',
- title:'9/29 (화)',sub:'DCW 참관 + 조호바루 데이터센터 투어',
+ title:'9/29 (화)',sub:'참관단 집결 → DCW 참관 → 조호르 DC 투어',
  lat:1.55,lng:103.75,zoom:9,lbl:'싱가포르↔조호바루',
  items:[
   {time:'08:00',type:'travel',icon:'🚌',title:'호텔 출발 — 전용버스',
@@ -1648,29 +1734,35 @@ const DAYS=[
    lat:1.282088,lng:103.8587715,zoom:16,
    secs:[
     {t:'행사장 위치',b:'<b>Sands Expo & Convention Centre</b>\nMBS 지하 2층 (B2) / 전용버스 하차 후 Convention Centre 입구 이동\nBayfront MRT역에서도 직결 연결'},
-    {t:'오전 일정',b:'09:00 KDCEA 참관단 집결 · 단체사진 (행사장 앞)\n09:30~11:30 DCW 세션 및 전시 부스 참관'},
-   ],tip:'명함 1인 30장 이상 준비. 세션 일정표 DCW 앱 또는 웹에서 사전 확인.',
+    {t:'오전 일정 — 참관단 공식 시작',b:'<b>09:00 행사장 앞 집결</b>\n· 참관단 상호 인사 · 전체 일정 안내\n· <b>단체사진 촬영 예정</b> (행사장 앞)\n참관단 규모 50명 내외 — 국내 DC 업계가 한자리에 모입니다\n\n09:30~11:30 DCW 세션 및 전시 부스 참관'},
+    {t:'행사 규모',b:'약 450개 데이터센터·관련 기업 참가 / 참관객 29,241명 이상 (2025년 기준)\n<b>행사는 9/29~9/30 이틀간</b>입니다 — 10/1에는 열리지 않습니다\n등록·배지는 KDCEA에서 일괄 진행했습니다. 배지 영문명은 여권 기준'},
+   ],tip:'명함 1인 30장 이상 준비. 세션 일정표 DCW 앱 또는 웹에서 사전 확인.\n오후에 조호르 투어가 있어 오전 참관 시간이 2시간뿐입니다 — 볼 부스를 미리 정해두세요.',
    mapQ:'Marina Bay Sands Expo Convention Centre Singapore'},
 
-  {time:'11:30',type:'travel',icon:'🛂',title:'조호바루 출발 — Tuas Second Link 국경 통과',
-   loc:'전용버스 · 편도 약 1시간 30분',
-   chips:[{t:'여권 필수',c:'r'},{t:'말레이시아 입국',c:'o'},{t:'입국카드 작성',c:'o'}],
-   warn:'⚠️ 버스에서 내려 입출국 심사 각자 통과 후 재탑승',
+  {time:'11:30',type:'travel',icon:'🛂',title:'조호르 출발 — Tuas Second Link 국경 통과',
+   loc:'집결: DCW 행사장(MBS) <b>1층 앞</b> · 전용버스 · 편도 약 1시간 30분',
+   chips:[{t:'11:30 집결',c:'r'},{t:'여권 필수',c:'r'},{t:'MBS 1층 앞',c:'o'}],
+   warn:'⚠️ <b>11:30 MBS 1층 앞 집결</b> — 버스에서 내려 입출국 심사 각자 통과 후 재탑승',
    lat:1.3473242,lng:103.6357333,zoom:11,
    secs:[
     {t:'국경 통과 절차',b:'① 전용버스 출발 → Tuas Second Link(제2링크) 이동\n② <b>싱가포르 출국심사</b> — 버스 하차 → ICA Tuas 줄서기 → 여권 스캔\n③ 버스 재탑승 → 말레이시아 이민국 이동\n④ <b>말레이시아 입국심사</b> — 버스 하차 → Customs 통과 → 재탑승\nMDAC(말레이시아 디지털 입국카드)은 종이가 아니라 <b>온라인 사전 제출</b>입니다 — 9/26부터 미리 해두세요'},
-    {t:'소요시간',b:'편도 <b>약 1시간 30분</b> (평일 낮 기준)\n러시아워·주말은 2~3시간 소요 가능'},
+    {t:'소요시간',b:'편도 <b>약 1시간 30분</b> (평일 낮 기준)\n러시아워·주말은 2~3시간 소요 가능\n출입국 심사 상황에 따라 실제 이동시간이 달라질 수 있다고 안내되어 있습니다'},
+    {t:'이동 중 제공',b:'간단한 다과(샌드위치 및 음료)가 제공될 예정입니다.\n오전 참관이 11:30에 끝나니 점심은 버스에서 해결하는 구조입니다'},
    ],tip:'말레이시아 링깃(MYR) 소액 환전 또는 USD 준비 권장.\n말레이시아 현지 카드 불가 식당 있음.',
    mapQ:'Tuas Second Link Singapore Malaysia Border Crossing',trKey:'bus_mbs_jb'},
 
-  {time:'13:00',type:'tour',icon:'🖥️',title:'Brightray MY-01 & MY-02 DC 투어',
-   loc:'Brightray MY-01 & MY-02, Sedenak Tech Park, Kulai, Johor',
-   chips:[{t:'하이퍼스케일 DC',c:'o'},{t:'MW급 규모',c:'o'},{t:'사진정책 확인',c:'k'}],
+  {time:'14:00',type:'tour',icon:'🖥️',title:'Brightray MY-01 & MY-02 DC 투어',
+   loc:'Brightray MY-01 & MY-02 · 말레이시아 조호르',
+   chips:[{t:'14:00 시작',c:'o'},{t:'약 1시간',c:'k'},{t:'회원사 2명',c:'r'}],
+   warn:'⚠️ 투어는 <b>약 1시간</b>입니다 — 볼 것을 미리 정해가야 합니다',
    lat:1.7008011,lng:103.4154865,zoom:14,
    secs:[
-    {t:'시설 개요',b:'<b>Brightray MY-01 & MY-02</b>\n말레이시아 조호르주 <b>쿨라이 세데낙 테크파크</b>\n(Jalan Digital 11, Kawasan Perindustrian Kulai)\n하이퍼스케일 DC 클러스터 / 투어 약 2~2.5시간\n\n싱가포르에서 편도 약 90km — 국경 포함 1시간 30분~2시간 잡으세요'},
+    {t:'일정',b:'<b>현지시간 14:00 예정 · 약 1시간</b> 진행\n참여 규모 30명 내외\n현지 사정 및 담당자와의 협의에 따라 일정이 일부 변경될 수 있다고 안내되어 있습니다'},
+    {t:'⚠️ 인원 제한',b:'KDCEA 안내상 <b>회원사별 최대 2명</b>까지 신청 가능합니다.\n우리는 4명이라 <b>전원 참가가 안 될 수 있습니다.</b> 사무국(황현진 책임 010-3016-0183)에 확정 인원을 확인하세요.\n추가 인원 신청이 가능할 경우 추후 별도 안내 예정'},
+    {t:'시설 개요',b:'<b>Brightray MY-01 & MY-02</b> (말레이시아 조호르)\n등록주소 기준 <b>쿨라이 세데낙 테크파크</b>\n(Jalan Digital 11, Kawasan Perindustrian Kulai)\n하이퍼스케일 DC 클러스터\n\n※ KDCEA 공문에는 "조호바루"로만 표기돼 있습니다. 정확한 게이트 위치는 참관단 확정 이메일을 확인하세요'},
+    {t:'사전 절차',b:'· 싱가포르-말레이시아 출입국 서류 및 사전등록 절차 → 참관단 확정 이메일로 별도 안내\n· <b>DC 출입을 위한 사전 정보 제출</b> 및 보안 유의사항도 참가 확정 시 안내\n메일함을 반드시 확인하세요 — 미제출 시 출입이 막힐 수 있습니다'},
     {t:'관찰 포인트',b:'· 전력 공급 인프라 (변전소·UPS·발전기 배치)\n· 냉각 시스템 (쿨링타워·CRAC/CRAH 유닛·콜드/핫 아일)\n· 이중화 구조 (Tier 등급·동선 분리·2N 구성)\n· 외장재·무창 파사드·보안 경계부 설계\n· BMS/DCIM 운영 플랫폼 구성'},
-   ],tip:'사진 금지 구역 현장에서 반드시 확인. 명함 지참.',
+   ],tip:'1시간짜리 투어라 질문을 미리 정리해 가세요. 전력 인입·냉각 방식·이중화 구성 세 가지만 확실히 물어도 성과입니다.\n사진 금지 구역 현장에서 반드시 확인. 명함 지참.',
    mapQ:'Sedenak Tech Park Jalan Digital Kulai Johor'},
 
   {time:'15:30',type:'travel',icon:'🚌',title:'싱가포르 귀환',
@@ -1683,13 +1775,21 @@ const DAYS=[
    loc:'Tanjong Pagar 인근',chips:[{t:'도보',c:'g'}],
    lat:1.2805121,lng:103.8503809,zoom:16,
    secs:[{t:'추천',b:'<b>라우파삿</b> (도보 10분) 또는 <b>Amoy Food Centre</b> (도보 5분)'}],
-   tip:'조호바루 이동 피로 고려 — 가까운 곳 추천.',
-   mapQ:'Lau Pa Sat Singapore'},
+   tip:'조호르 왕복 이동 피로를 고려해 가까운 곳으로 잡았습니다.',
+   mapQ:'Lau Pa Sat Singapore',trKey:'d0_dinner_hotel'},
+
+  {time:'20:00',type:'travel',icon:'🏨',title:'숙소 복귀',
+   loc:'Oasia Hotel Downtown · 100 Peck Seah St',chips:[{t:'도보 15분',c:'k'}],
+   lat:1.275835,lng:103.8442824,zoom:16,
+   secs:[
+    {t:'오늘 정리',b:'· 조호르에서 받은 명함 · 시설 메모를 오늘 안에 정리하세요. 하루 지나면 누가 누군지 흐려집니다\n· 여권은 내일 안 쓰니 객실 금고에 넣어두세요\n· 내일은 <b>13:45 Schneider 집결</b>이 있습니다 — 오후 일정이 빡빡합니다'},
+   ],tip:'국경 왕복에 3시간을 썼습니다. 일찍 쉬세요.',
+   mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
  ]
 },
 
 {id:4,date:'9/30',wd:'수',badge:'⚡ Schneider',bc:'#1e7e5a',
- title:'9/30 (수)',sub:'DCW 참관 + Schneider Electric Innovation Hub 투어',
+ title:'9/30 (수)',sub:'DCW 참관 + Schneider Hub 투어 + 참관단 네트워킹',
  lat:1.2900,lng:103.8600,zoom:13,lbl:'MBS→Schneider',
  items:[
   {time:'08:20',type:'travel',icon:'🚌',title:'호텔 출발',
@@ -1705,57 +1805,84 @@ const DAYS=[
    tip:'오후 세션 집중 탐방. 15:30 정각 집합.',
    mapQ:'Marina Bay Sands Expo Convention Centre Singapore'},
 
-  {time:'15:45',type:'tour',icon:'⚡',title:'Schneider Electric Innovation Hub 투어',
-   loc:'Schneider Electric, 25 International Business Park, Singapore 609916',
-   chips:[{t:'전력·냉각 실물',c:'o'},{t:'확정',c:'g'}],
-   lat:1.3249723,lng:103.7463454,zoom:16,
+  {time:'13:15',type:'travel',icon:'🚕',title:'MBS → Schneider 개별 이동',
+   loc:'Marina Bay Sands → 50 Kallang Ave',
+   warn:'⚠️ 전용버스 없음 — <b>행사장 또는 숙소에서 개별 이동</b>입니다',
+   chips:[{t:'개별 이동',c:'r'},{t:'약 15분',c:'k'}],
+   lat:1.282088,lng:103.8587715,zoom:14,
    secs:[
-    {t:'시설 위치',b:'<b>Schneider Electric Singapore Innovation Hub</b>\n25 International Business Park, Jurong East (S)609916\nMRT → Jurong East 방향 / 전용버스 이동'},
-    {t:'관찰 포인트',b:'· EcoStruxure IT (DCIM 플랫폼) 실사용 데모\n· 모듈형 UPS 시스템 (Galaxy VM/VX)\n· In-row Cooling 냉각 솔루션\n· 프리패브 DC 모듈 전시 (Micro DC)'},
-   ],tip:'EPMS/BMS/DCIM 관련 질문 미리 준비 권장 (담당 프로젝트 요구사항 연계).\n명함 지참.',
-   mapQ:'Schneider Electric Innovation Hub 25 International Business Park Singapore',
-   trKey:'bus_mbs_sch'},
+    {t:'이동',b:'MBS → <b>50 Kallang Ave</b> 약 4km\n· Grab: 12~15분 · S$10~14 (4명이면 이 편이 확실합니다)\n· MRT: Bayfront(CE1/DT16) → Lavender(EW11) → 도보 10분 · 약 30분\n\n<b>13:45 집결</b>이니 13:15에는 나서야 합니다'},
+   ],tip:'점심은 행사장에서 미리 해결하고 움직이세요.',
+   mapQ:'Schneider Electric 50 Kallang Avenue Singapore',trKey:'bus_mbs_sch'},
 
-  {time:'17:30',type:'social',icon:'🍽️',title:'저녁식사',
-   loc:'장소 미정',chips:[],
-   lat:1.275835,lng:103.8442824,zoom:15,
-   secs:[{t:'안내',b:'장소 확정 시 업데이트 예정'}],
-   tip:'',mapQ:'Oasia Hotel Downtown Singapore'},
+  {time:'13:45',type:'tour',icon:'⚡',title:'Schneider Innovation Hub 투어',
+   loc:'Schneider Electric Singapore · 50 Kallang Ave, Singapore 339505',
+   warn:'⚠️ <b>13:45까지 지사 앞 집결</b> — 출입 등록 때문에 시간 엄수 요청받았습니다',
+   chips:[{t:'13:45 집결',c:'r'},{t:'14:00 시작',c:'o'},{t:'회원사 2명',c:'r'}],
+   lat:1.3127669,lng:103.8666933,zoom:16,
+   secs:[
+    {t:'장소',b:'<b>Schneider Electric 싱가포르 지사 내 Innovation Hub</b>\n50 Kallang Ave, Singapore 339505\n칼랑 강변의 옛 창고를 리모델링한 건물로, <b>건물 자체가 자사 솔루션의 실증 쇼룸</b>입니다 — 그린빌딩 운영 데이터를 대형 스크린으로 실시간 표출합니다'},
+    {t:'일정',b:'<b>13:45</b> 지사 앞 집결 → <b>14:00</b> 투어 시작\n참여 규모 30명 내외'},
+    {t:'⚠️ 인원 제한',b:'KDCEA 안내상 <b>회원사별 최대 2명</b>까지 신청 가능합니다.\n우리는 4명이라 <b>전원 참가가 안 될 수 있습니다.</b> 사무국(황현진 책임 010-3016-0183)에 확정 인원을 확인하세요.\n추가 인원은 가능할 경우 별도 안내 예정이라고 되어 있습니다'},
+    {t:'관찰 포인트',b:'· EcoStruxure IT (DCIM 플랫폼) 실사용 데모\n· 모듈형 UPS 시스템 (Galaxy VM/VX)\n· In-row Cooling 냉각 솔루션\n· 프리패브 DC 모듈 전시 (Micro DC)'},
+   ],tip:'EPMS/BMS/DCIM 관련 질문 미리 준비 권장 (담당 프로젝트 요구사항 연계).\n출입 사전등록 절차는 참관단 확정 이메일로 별도 안내됩니다 — 메일 확인하세요.\n명함 지참.',
+   mapQ:'Schneider Electric 50 Kallang Avenue Singapore 339505'},
+
+  {time:'18:30',type:'social',icon:'🤝',title:'KDCEA 참관단 네트워킹 행사',
+   loc:'장소 협의 중 — 확정 시 사무국 공지',
+   chips:[{t:'KDCEA 주관',c:'r'},{t:'명함 필수',c:'o'}],
+   lat:1.282088,lng:103.8587715,zoom:14,
+   secs:[
+    {t:'안내',b:'KDCEA 공식 일정표상 <b>참관단 네트워킹 행사는 9/30(수) 저녁</b>입니다.\n장소는 협의 중으로, 확정되면 사무국에서 공지합니다.\n\n참관단 규모가 50명 내외라 국내 DC 업계 인맥을 한 번에 넓힐 기회입니다'},
+    {t:'준비',b:'· 명함 넉넉히 (최소 30장)\n· 회사·팀 소개 30초 버전 한국어로 정리\n· 이 행사와 별개로, 29일 또는 30일 저녁에 현지 DC 관련사가 주관하는 네트워킹이 열릴 수 있다고 안내되어 있습니다'},
+   ],tip:'귀국 후 명함 정리까지가 네트워킹입니다. 받은 자리에서 메모를 남겨두세요.',
+   mapQ:'Marina Bay Sands Singapore'},
+
+  {time:'21:30',type:'travel',icon:'🏨',title:'숙소 복귀',
+   loc:'Oasia Hotel Downtown · 100 Peck Seah St',chips:[{t:'Grab 10분',c:'k'}],
+   lat:1.275835,lng:103.8442824,zoom:16,
+   secs:[
+    {t:'돌아오는 길',b:'네트워킹 장소가 확정되면 경로를 업데이트합니다.\nMBS 기준이라면 Grab 10분 · S$9~13 / MRT는 Bayfront → Maxwell 약 20분'},
+    {t:'오늘 정리',b:'· 오늘 받은 명함에 <b>그 자리에서 메모</b>를 남겼는지 확인하세요\n· 내일(10/1)은 공식 일정이 없는 자유일입니다\n· 공공장소 음주는 <b>22:30부터 금지</b>입니다 — 마무리는 실내에서'},
+   ],tip:'DCW 이틀이 오늘로 끝났습니다. 수고하셨습니다.',
+   mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
  ]
 },
 
-{id:5,date:'10/1',wd:'목',badge:'🤝 네트워킹',bc:'#a82020',
- title:'10/1 (목)',sub:'DCW 마지막 참관 + 시내투어 + KDCEA 네트워킹',
- lat:1.2900,lng:103.8500,zoom:13,lbl:'Marina Bay Sands',
+{id:5,date:'10/1',wd:'목',badge:'🆓 개별',bc:'#1e7e5a',
+ title:'10/1 (목)',sub:'DCW 종료 — 개별 일정일. 참관단은 오늘 저녁 귀국',
+ lat:1.2868,lng:103.8545,zoom:13,lbl:'개별 일정',
  items:[
-  {time:'08:20',type:'travel',icon:'🚌',title:'호텔 출발',
-   loc:'전용버스',chips:[{t:'08:20 출발',c:'r'}],
-   lat:1.275835,lng:103.8442824,zoom:15,
-   secs:[{t:'집합',b:'로비 <b>08:10</b>까지 집합\n오늘이 마지막 일정입니다. 내일 아침 05:30에 공항으로 출발하니 오늘 밤에 짐을 싸두세요'}],
-   tip:'',mapQ:'Oasia Hotel Downtown Singapore',trKey:'bus_hotel_mbs'},
+  {time:'09:00',type:'free',icon:'☕',title:'늦은 아침 — 오늘은 공식 일정 없음',
+   loc:'Oasia Hotel Downtown',
+   warn:'⚠️ <b>DCW Asia 2026은 9/29~9/30 이틀로 끝납니다.</b> 오늘은 참관단 표준 일정상 개별 일정일입니다',
+   chips:[{t:'공식 일정 없음',c:'g'},{t:'자유',c:'g'}],
+   lat:1.275835,lng:103.8442824,zoom:16,
+   secs:[
+    {t:'오늘의 위치',b:'KDCEA 참관단은 <b>오늘 저녁 SIN-ICN 귀국</b>합니다.\n우리는 내일(10/2) 오전편이라 <b>하루가 온전히 남습니다.</b>\n\n이틀간 행사장에 있었으니 오늘은 페이스를 조절하세요. 내일 04:50 기상입니다'},
+    {t:'추천 쓰임',b:'① <b>월요일에 안 고른 루트</b> — 월요일 탭의 4개 중 남은 것을 그대로 쓰면 됩니다\n② <b>행사 후속 정리</b> — 명함 정리, 벤더 팔로우업 메일을 현지에서 보내면 회신이 빠릅니다\n③ <b>맛집 탭</b> — 뉴튼 푸드센터는 저녁에 가야 제맛입니다'},
+   ],tip:'오늘 산 물건이 있으면 영수증을 모아두세요 — 내일 아침 창이공항에서 GST 환급받습니다 (같은 가게 S$100 이상).',
+   mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
 
-  {time:'09:00',type:'event',icon:'🏢',title:'DCW 마지막 참관',
-   loc:'Marina Bay Sands Expo (점심 포함)',chips:[{t:'명함 마무리',c:'g'}],
-   lat:1.282088,lng:103.8587715,zoom:16,
-   secs:[{t:'일정',b:'09:00~17:00 마지막 세션·전시 참관\n점심: 행사장 내 제공'}],
-   tip:'미확보 명함 마무리. 한국 귀국 전 인사 교환.',
-   mapQ:'Marina Bay Sands Expo Convention Centre Singapore'},
-
-  {time:'17:00',type:'free',icon:'🌆',title:'싱가포르 시내투어',
-   loc:'투어버스',chips:[{t:'투어버스',c:'b'}],
-   lat:1.2868,lng:103.8545,zoom:14,
-   secs:[{t:'예상 코스',b:'머라이언 파크 (1 Fullerton Rd) → 가든스바이더베이 → 오차드 로드'}],
-   tip:'투어 후 호텔 귀환 → 짐 챙김 → 공항 이동.',
-   mapQ:'Merlion Park Singapore'},
-
-  {time:'17:30',type:'social',icon:'🤝',title:'KDCEA 단체 네트워킹 행사',
-   loc:'장소 협의 중',chips:[{t:'KDCEA 주관',c:'r'}],
+  {time:'10:00',type:'free',icon:'🗺️',title:'자유 일정 — 월요일 루트 재사용',
+   loc:'월요일 탭 참고',chips:[{t:'4개 루트',c:'b'}],
    lat:1.2837575,lng:103.8591065,zoom:14,
-   secs:[{t:'안내',b:'장소 확정 시 업데이트 예정'}],
-   tip:'명함 충분히 지참.',
+   secs:[
+    {t:'남은 루트에서 고르기',b:'<b>도시건축</b> — MBS 내부 공간설계 · 애플스토어 · 가든스 · CBD 저층부\n<b>문화·역사</b> — 차이나타운 · 캄퐁글람 · 리틀인디아\n<b>인프라·DC</b> — NEWater · 창이 비즈니스 파크 · URA\n<b>자전거 라이딩</b> — Anywheel로 마리나베이 한 바퀴\n\n월요일 탭에서 루트를 고르면 지도와 길찾기가 그대로 나옵니다'},
+    {t:'DC 업계 사람에게 권할 만한 것',b:'· <b>URA 시티갤러리</b> — 1:400 도시 모형. 목요일 09:00~17:00 개관\n· <b>NEWater 방문자센터</b> — 물 재처리. DC 냉각수 재활용과 직결\n· <b>마리나 배러지</b> — 댐 옥상 공원, 인프라를 공공공간으로 쓴 사례'},
+   ],tip:'무리하지 마세요. 내일 새벽 5시 반에 공항으로 출발합니다.',
    mapQ:'Marina Bay Sands Singapore'},
 
-  {time:'19:30',type:'free',icon:'🧳',title:'호텔 복귀 · 짐 정리',
+  {time:'17:00',type:'free',icon:'🌆',title:'마지막 저녁 — 시내 한 바퀴',
+   loc:'머라이언 파크 일대',chips:[{t:'야경',c:'b'}],
+   lat:1.2867449,lng:103.8543872,zoom:15,
+   secs:[
+    {t:'짧게 도는 코스',b:'머라이언 파크 → 주빌리 브리지 → 에스플러네이드 → (원하면) 가든스 바이 더 베이\n전부 도보로 이어지고 1시간 반이면 충분합니다'},
+    {t:'저녁',b:'· <b>뉴튼 푸드센터</b> — MRT 15분. 고층 사이 단층 야시장 (맛집 탭 참고)\n· <b>라우파삿 사테이 거리</b> — 19시부터 도로를 막고 노점이 섭니다\n· 공공장소 음주는 <b>22:30부터 금지</b>입니다'},
+   ],tip:'가든스 슈퍼트리 라이트쇼는 19:45 / 20:45 두 번입니다.',
+   mapQ:'Merlion Park Singapore'},
+
+  {time:'21:00',type:'free',icon:'🧳',title:'호텔 복귀 · 짐 정리',
    loc:'Oasia Hotel Downtown',warn:'⚠️ 내일 05:30 출발 — 오늘 밤에 숙박비 정산까지 끝내두세요',
    chips:[{t:'마지막 밤',c:'k'}],lat:1.275835,lng:103.8442824,zoom:15,
    secs:[
@@ -1803,12 +1930,12 @@ const DAYS=[
    ],tip:'TWG 홍차, 타이거밤, 카야잼이 무난한 선물입니다. 주류는 한국 면세 한도 2병·2L·US$400까지.',
    mapQ:'Singapore Changi Airport Terminal 3 Departure Hall'},
 
-  {time:'08:10',type:'travel',icon:'🛫',title:'귀국편 출발 SIN→ICN',
+  {time:'08:10',type:'travel',icon:'🛫',title:'SQ606 출발 SIN→ICN',
    loc:'창이 T3 08:10 출발 → 인천 T1 15:30 도착',
-   chips:[{t:'08:10 출발',c:'b'},{t:'약 6h20m',c:'k'}],
+   chips:[{t:'SQ606',c:'b'},{t:'08:10 출발',c:'b'},{t:'약 6h20m',c:'k'}],
    lat:1.3560743,lng:103.9874748,zoom:12,
    secs:[
-    {t:'비행',b:'창이 <b>08:10</b> 출발 → 인천 T1 <b>15:30</b> 도착 (약 6시간 20분)\n시차 1시간 (싱가포르가 1시간 느림)\n기내에서 여행자 세관신고는 모바일 신고로 대체 가능합니다'},
+    {t:'비행',b:'<b>SQ606</b> · 창이 <b>08:10</b> 출발 → 인천 T1 <b>15:30</b> 도착 (약 6시간 20분)\n시차 1시간 (싱가포르가 1시간 느림)\n기내에서 여행자 세관신고는 모바일 신고로 대체 가능합니다'},
    ],tip:'낮 비행이라 도착 후 반차 쓰지 않아도 되는 시간대입니다.',
    mapQ:'Singapore Changi Airport Terminal 3'},
 
@@ -1822,6 +1949,8 @@ const DAYS=[
    mapQ:'인천국제공항 1터미널'},
  ]
 },
+{id:8,date:'학습',wd:'DC',badge:'🔒 학습노트',bc:'#1a3a5c',
+ title:'출장 학습노트',sub:'AI 서버 냉각·전력과 건축계획',study:true},
 {id:7,date:'맛집',wd:'자투리',badge:'🍜 맛집·틈새',bc:'#c45e0a',
  title:'맛집 · 자투리 시간',sub:'호텔 근처 · 행사장 근처 · 시간 남을 때',
  lat:1.2790,lng:103.8460,zoom:15,food:true},
@@ -1904,16 +2033,21 @@ var PLACE_LABEL = {
   '싱가포르 귀환':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '저녁식사':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '팀 저녁식사':['라우파삿','Lau Pa Sat'],
+  '숙소 복귀':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   'DCW Asia 2026 오전 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
   'DCW Asia 2026 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
   'DCW 마지막 참관':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
   'KDCEA 단체 네트워킹 행사':['마리나베이 샌즈','Marina Bay Sands'],
-  '조호바루 출발 — Tuas Second Link 국경 통과':['투아스 제2링크','Tuas Second Link'],
+  '조호르 출발 — Tuas Second Link 국경 통과':['투아스 제2링크','Tuas Second Link'],
   'Brightray MY-01 & MY-02 DC 투어':['세데낙 테크파크 · 쿨라이','Sedenak Tech Park, Kulai'],
-  'Schneider Electric Innovation Hub 투어':['인터내셔널 비즈니스 파크','International Business Park'],
-  '싱가포르 시내투어':['머라이언 파크','Merlion Park'],
+  'Schneider Innovation Hub 투어':['슈나이더 일렉트릭 · 칼랑','Schneider Electric, Kallang'],
+  'MBS → Schneider 개별 이동':['마리나베이 샌즈 엑스포','Marina Bay Sands Expo'],
+  'KDCEA 참관단 네트워킹 행사':['마리나베이 샌즈','Marina Bay Sands'],
+  '늦은 아침 — 오늘은 공식 일정 없음':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '자유 일정 — 월요일 루트 재사용':['마리나베이 샌즈','Marina Bay Sands'],
+  '마지막 저녁 — 시내 한 바퀴':['머라이언 파크','Merlion Park'],
   '창이 T3 도착 — 체크인 · 세금환급 · 출국':['창이공항 T3','Changi Airport T3'],
-  '귀국편 출발 SIN→ICN':['창이공항 T3','Changi Airport T3'],
+  'SQ606 출발 SIN→ICN':['창이공항 T3','Changi Airport T3'],
   '인천공항 T1 도착 · 해산':['인천공항 T1','Incheon Airport T1'],
   // 월요일 루트
   '숙소 출발 — Oasia Hotel Downtown':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
@@ -1921,6 +2055,8 @@ var PLACE_LABEL = {
   '숙소 복귀':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '숙소 복귀 — 반납 주의':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '마리나베이 샌즈 (MBS)':['마리나베이 샌즈','Marina Bay Sands'],
+  '더 샵스 — 수공간과 길찾기':['더 샵스 @ MBS','The Shoppes at MBS'],
+  '애플 마리나베이 샌즈':['애플 마리나베이 샌즈','Apple Marina Bay Sands'],
   'MBS 행사장 사전 확인':['마리나베이 샌즈','Marina Bay Sands'],
   '가든스 바이 더 베이':['가든스 바이 더 베이','Gardens by the Bay'],
   '가든스 바이 더 베이 — 외곽 라이딩':['가든스 바이 더 베이','Gardens by the Bay'],
@@ -1928,6 +2064,8 @@ var PLACE_LABEL = {
   '에스플러네이드 극장':['에스플러네이드','Esplanade'],
   '래플스 플레이스 CBD':['래플스 플레이스','Raffles Place'],
   '차이나타운 & 불아사':['차이나타운 · 불아사','Chinatown · Buddha Tooth Relic Temple'],
+  '파크로열 컬렉션 피커링':['파크로열 피커링','PARKROYAL COLLECTION Pickering'],
+  '캐피타스프링 스카이가든 (51F)':['캐피타스프링','CapitaSpring Sky Garden'],
   '피너클 @ 덕스턴':['피너클앳덕스턴','Pinnacle@Duxton'],
   '술탄 모스크 & 캄퐁글람':['술탄 모스크 · 캄퐁글람','Sultan Mosque · Kampong Glam'],
   '스리 비라마칼리암만 사원':['스리 비라마칼리암만 사원','Sri Veeramakaliamman Temple'],
@@ -2223,6 +2361,12 @@ function renderDay(i){
   if(d.checklist){
     document.getElementById('mapWrap').style.display='none';
     renderChecklist(ci);
+    return;
+  }
+  // 학습노트 탭 — 지도 없이 PIN 보호 본문만
+  if(d.study){
+    document.getElementById('mapWrap').style.display='none';
+    renderStudy(ci);
     return;
   }
   document.getElementById('mapWrap').style.display='';
@@ -3250,6 +3394,125 @@ function ckGroupTotals(g){
   var done = 0;
   g.items.forEach(function(it){ if(ckState[it.id]) done++; });
   return { total: g.items.length, done: done };
+}
+
+// ── 학습노트 (PIN 보호) ─────────────────────────────────────
+var STUDY_ENC = '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';
+var studyData = null;
+
+function studyDecode(pin){
+  try{
+    var bin = atob(STUDY_ENC);
+    var bytes = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    var k = new TextEncoder().encode(pin);
+    var out = new Uint8Array(bytes.length);
+    for(var j=0;j<bytes.length;j++) out[j] = bytes[j] ^ k[j % k.length];
+    var txt = new TextDecoder('utf-8').decode(out);
+    if(txt.slice(0,6) !== '@@SG@@') return null;
+    return JSON.parse(txt.slice(6));
+  }catch(e){ return null; }
+}
+
+function stQLoad(){
+  try{ return JSON.parse(localStorage.getItem('sg_study_q')||'{}'); }catch(e){ return {}; }
+}
+function stQSave(o){ try{ localStorage.setItem('sg_study_q', JSON.stringify(o)); }catch(e){} }
+
+function renderStudy(ci){
+  if(!studyData){
+    try{ if(sessionStorage.getItem('sg_study_ok')==='1') studyData = studyDecode('0927'); }catch(e){}
+  }
+  if(!studyData){ renderStudyLock(ci); return; }
+  renderStudyBody(ci);
+}
+
+function renderStudyLock(ci){
+  var w = mk('div','st-lock');
+  w.innerHTML = '<div class="st-lock-i">🔒</div>'
+    + '<div class="st-lock-t">출장 학습노트</div>'
+    + '<div class="st-lock-s">AI 서버 냉각·전력과 건축계획<br>본인 확인용 PIN을 입력하세요</div>';
+  var row = mk('div','st-pin');
+  var inp = document.createElement('input');
+  inp.type='tel'; inp.inputMode='numeric'; inp.maxLength=8; inp.placeholder='••••';
+  var btn = document.createElement('button'); btn.textContent='열기';
+  row.appendChild(inp); row.appendChild(btn);
+  w.appendChild(row);
+  var err = mk('div','st-err'); w.appendChild(err);
+  ci.appendChild(w);
+
+  function tryOpen(){
+    var d = studyDecode(inp.value.trim());
+    if(d){
+      studyData = d;
+      try{ sessionStorage.setItem('sg_study_ok','1'); }catch(e){}
+      ci.innerHTML=''; renderStudyBody(ci);
+    } else {
+      err.textContent = 'PIN이 맞지 않습니다';
+      inp.value=''; inp.focus();
+    }
+  }
+  btn.addEventListener('click', tryOpen);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter') tryOpen(); });
+  setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 120);
+}
+
+function renderStudyBody(ci){
+  var done = stQLoad();
+  studyData.sections.forEach(function(sec){
+    var card = mk('div','st-sec');
+    var h = mk('div','st-h');
+    h.style.background = sec.c;
+    h.innerHTML = '<span class="st-h-i">'+sec.icon+'</span><span class="st-h-t">'+sec.h+'</span>';
+    card.appendChild(h);
+    var body = mk('div','st-body');
+    sec.blocks.forEach(function(bl){
+      if(bl.t==='lead'){ var e=mk('div','st-lead'); e.innerHTML=bl.b; body.appendChild(e); }
+      else if(bl.t==='text'){ var e2=mk('div','st-text'); e2.innerHTML=bl.b; body.appendChild(e2); }
+      else if(bl.t==='note'){ var e3=mk('div','st-note'); e3.innerHTML=bl.b; body.appendChild(e3); }
+      else if(bl.t==='num'){
+        var n=mk('div','st-num');
+        n.innerHTML='<div class="st-num-n">'+bl.n+'</div><div><div class="st-num-h">'
+          +bl.h+'</div><div class="st-num-b">'+bl.b+'</div></div>';
+        body.appendChild(n);
+      }
+      else if(bl.t==='table'){
+        var tb=document.createElement('table'); tb.className='st-tbl';
+        bl.rows.forEach(function(r){
+          var tr=document.createElement('tr');
+          r.forEach(function(cell){ var td=document.createElement('td'); td.innerHTML=cell; tr.appendChild(td); });
+          tb.appendChild(tr);
+        });
+        body.appendChild(tb);
+      }
+      else if(bl.t==='bullets'){
+        var ul=document.createElement('ul'); ul.className='st-ul';
+        bl.items.forEach(function(it){ var li=document.createElement('li'); li.innerHTML=it; ul.appendChild(li); });
+        body.appendChild(ul);
+      }
+      else if(bl.t==='q'){
+        var q=mk('div','st-q'+(done[bl.id]?' on':''));
+        q.innerHTML='<div class="st-q-box">✓</div><div class="st-q-t">'+bl.b+'</div>';
+        q.addEventListener('click', function(){
+          var st=stQLoad();
+          if(st[bl.id]){ delete st[bl.id]; q.classList.remove('on'); }
+          else { st[bl.id]=1; q.classList.add('on'); }
+          stQSave(st);
+        });
+        body.appendChild(q);
+      }
+    });
+    card.appendChild(body);
+    ci.appendChild(card);
+  });
+  var rb = mk('button','st-reset');
+  rb.textContent='질문 체크 초기화 · 잠그기';
+  rb.addEventListener('click', function(){
+    stQSave({}); studyData=null;
+    try{ sessionStorage.removeItem('sg_study_ok'); }catch(e){}
+    ci.innerHTML=''; renderStudyLock(ci);
+  });
+  ci.appendChild(rb);
 }
 
 function renderChecklist(ci){
