@@ -2370,7 +2370,6 @@ function renderDay(i){
   document.getElementById('hBadge').style.background=d.bc;
   const ci=document.getElementById('ci');
   ci.innerHTML='';
-  FieldAssistant.overview(ci);
 
   // 준비 체크리스트 탭 — 지도 대신 체크리스트만
   if(d.checklist){
@@ -3825,106 +3824,141 @@ const FieldAssistant = (() => {
   }
   function add(tag,parent,text,cls){const el=document.createElement(tag);if(text)el.textContent=text;if(cls)el.className=cls;if(parent)parent.appendChild(el);return el;}
   function button(parent,text,fn){const el=add('button',parent,text);el.type='button';el.onclick=fn;return el;}
-  function speak(text){
-    if(!('speechSynthesis' in window))return;
-    window.speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(text);utter.lang='ko-KR';window.speechSynthesis.speak(utter);
+  const messages=[];
+  let voiceMode=false,speaking=false,speechToken=0,activeRequest=null;
+  function status(text){document.getElementById('fa-status').textContent=text;}
+  function scrollChat(){const thread=document.getElementById('fa-messages');thread.scrollTop=thread.scrollHeight;}
+  function bubble(role,text,remember=true){
+    const thread=document.getElementById('fa-messages');
+    const row=add('div',thread,'','fa-message fa-'+role);
+    add('span',row,role==='user'?'나':'출장 도우미','fa-speaker');
+    const content=add('div',row,text,'fa-bubble');
+    if(role==='assistant'){const old=document.getElementById('fa-answer');if(old)old.id='';content.id='fa-answer';}
+    if(remember){messages.push({role,content:text});if(messages.length>40)messages.shift();}
+    scrollChat();return content;
   }
-  function result(text){const out=document.getElementById('fa-answer');out.textContent=text;if(document.getElementById('fa-read').checked)speak(text);}
+  function stopVoice(){
+    voiceMode=false;speaking=false;speechToken++;
+    const r=recognition;recognition=null;if(r)r.abort();
+    window.speechSynthesis?.cancel();
+    const mic=document.getElementById('fa-mic');mic.textContent=mic.disabled?'음성 입력 미지원':'🎙 음성 대화';mic.setAttribute('aria-pressed','false');
+    status('마이크를 누르거나 메시지를 입력하세요.');
+  }
+  function startListening(){
+    if(!voiceMode||busy||speaking||recognition||!document.getElementById('fa-panel').open)return;
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){stopVoice();return;}
+    const r=new SR();recognition=r;r.lang='ko-KR';r.interimResults=true;r.continuous=false;
+    let heard=false;
+    r.onstart=()=>{if(recognition===r)status('듣고 있어요. 편하게 말씀하세요…');};
+    r.onresult=e=>{
+      if(recognition!==r||!voiceMode)return;
+      let transcript='';for(let i=e.resultIndex||0;i<e.results.length;i++)transcript+=e.results[i][0].transcript;
+      document.getElementById('fa-question').value=transcript;
+      if(e.results[e.results.length-1].isFinal&&!heard){heard=true;r.stop();ask();}
+    };
+    r.onerror=e=>{
+      if(recognition!==r)return;
+      stopVoice();status(e.error==='not-allowed'?'마이크 권한을 허용한 뒤 다시 눌러주세요.':e.error==='no-speech'?'말소리가 들리지 않았어요. 마이크를 눌러 다시 시작하세요.':'음성 연결을 마쳤어요. 마이크를 다시 누르거나 글로 입력하세요.');
+    };
+    r.onend=()=>{
+      if(recognition!==r)return;recognition=null;
+      if(!heard&&voiceMode){stopVoice();status('마이크를 눌러 다시 말씀해주세요.');return;}
+      if(voiceMode&&!busy&&!speaking)startListening();
+    };
+    try{r.start();}catch(e){recognition=null;stopVoice();status('마이크를 시작하지 못했어요. 글로 입력하거나 다시 시도해주세요.');}
+  }
+  function speak(text){
+    if(!('speechSynthesis' in window)||!document.getElementById('fa-panel').open)return;
+    const token=++speechToken;window.speechSynthesis.cancel();speaking=true;
+    const utter=new SpeechSynthesisUtterance(text);utter.lang='ko-KR';utter.rate=1;
+    status('답변을 읽고 있어요…');
+    utter.onend=()=>{if(token!==speechToken)return;speaking=false;status('마이크를 누르거나 메시지를 입력하세요.');startListening();};
+    utter.onerror=()=>{if(token!==speechToken)return;stopVoice();status('음성 재생이 중단됐어요. 답변은 채팅에서 확인할 수 있습니다.');};
+    try{window.speechSynthesis.speak(utter);}catch(e){stopVoice();status('답변은 채팅에서 확인해주세요.');}
+  }
+  function result(text){
+    bubble('assistant',text);status('마이크를 누르거나 메시지를 입력하세요.');
+    if(document.getElementById('fa-read').checked)speak(text);
+  }
   async function ask(){
     if(busy)return;
     const input=document.getElementById('fa-question'),q=input.value.trim();if(!q)return;
-    busy=true;document.getElementById('fa-send').disabled=true;
+    speechToken++;speaking=false;window.speechSynthesis?.cancel();
+    const r=recognition;recognition=null;if(r)r.abort();
+    bubble('user',q);input.value='';busy=true;document.getElementById('fa-send').disabled=true;
+    status('일정을 확인하고 있어요…');
     try{
       const s=lastTarget||target(),local=answer(q,new Date(),s);
       if(local){result(local);return;}
-      if(!navigator.onLine||!/^https?:$/.test(location.protocol)){result('오프라인 일정 조회: 질문을 이해하지 못했습니다. “다음 일정 어디야”, “누구 만나”, “여기서 뭘 봐야 해” 또는 항공편 질문을 이용하세요.');return;}
-      result('등록된 출장 자료에서 답변을 찾고 있습니다…');
-      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+      if(!navigator.onLine||!/^https?:$/.test(location.protocol)){result('지금은 오프라인이에요. “다음 일정 어디야”, “누구 만나”, “여기서 뭘 봐야 해”처럼 물어보시면 저장된 일정에서 찾아드릴게요.');return;}
+      const controller=new AbortController();activeRequest=controller;
+      const timer=setTimeout(()=>controller.abort(),12000);
       try{
-        const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({mode:'assistant',question:q,context:JSON.stringify({now:new Date().toISOString(),flights:AIR_TRIP,selected:s,selected_day:s?listFor(s.WHEN.date):[],constraints:[KDCEA,FLIGHT_NOTE]})})});
+        const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({mode:'assistant',question:q,history:messages.slice(-9,-1).map(m=>({role:m.role,content:m.content.slice(0,2000)})),context:JSON.stringify({now:new Date().toISOString(),flights:AIR_TRIP,selected:s,selected_day:s?listFor(s.WHEN.date):[],constraints:[KDCEA,FLIGHT_NOTE]})})});
         if(!response.ok)throw new Error('unavailable');const data=await response.json();
+        if(controller.signal.aborted)return;
         if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('empty');
-        result('AI 답변 · 기존 자료 기반, 확정 안내와 대조하세요.\n'+data.answer+'\n\n미확정 안내: '+(s?.WHERE.map_pin_usage==='reference_only'?s.metadata.note:'등록되지 않은 정보는 확정할 수 없습니다.'));
-      }catch(e){result('AI 연결이 원활하지 않습니다. 일정 조회와 체크리스트는 계속 사용할 수 있습니다. “다음 일정 어디야”, “오늘 일정 알려줘”, “KDCEA 어디로 가?”로 질문하세요.');}finally{clearTimeout(timer);}
-    }finally{busy=false;document.getElementById('fa-send').disabled=false;}
+        result(data.answer+(s?.WHERE.map_pin_usage==='reference_only'?'\n\n'+s.metadata.note:''));
+      }catch(e){if(activeRequest===controller&&document.getElementById('fa-panel').open)result('AI 연결이 원활하지 않습니다. 잠시 후 다시 말씀해주세요. “다음 일정 어디야”처럼 저장된 일정 질문은 계속 이용할 수 있어요.');}
+      finally{clearTimeout(timer);if(activeRequest===controller)activeRequest=null;}
+    }finally{busy=false;document.getElementById('fa-send').disabled=false;startListening();}
   }
   function listFor(date){return schedules().filter(s=>s.WHEN.date===date);}
   function refresh(){
-    const state=timeline(),s=target();
-    document.getElementById('fa-now').textContent='NOW · '+(state.current?summary(state.current)+' (시작 시각 기준 · 진행 여부 확인 필요)':'현재 시작된 당일 일정 없음');
-    document.getElementById('fa-next').textContent='NEXT · '+summary(state.next);
-    const details=document.getElementById('fa-context');details.textContent=s?summary(s)+'\nWHERE · '+(s.WHERE.map_pin_usage==='reference_only'?s.metadata.note:s.WHERE.place_name_ko)+'\nHOW · '+(s.HOW.transportation||'이동수단 확인 필요')+'\nLEAVE · '+(s.WHEN.departure_time||'출발 권장시각 미등록')+'\nDO · '+(s.ACTION.what_to_do||'도착 후 안내 확인 필요'):'선택 가능한 출장 일정이 없습니다.';
-    loadNote();
+    const s=target();document.getElementById('fa-context').textContent=s?summary(s)+'\n'+(s.WHERE.map_pin_usage==='reference_only'?s.metadata.note:s.WHERE.place_name_ko):'선택된 일정이 없습니다.';loadNote();
   }
   function fillSelect(){const sel=document.getElementById('fa-schedule');sel.replaceChildren();let opt=add('option',sel,'현재 시간 기준');opt.value='';schedules().forEach(s=>{opt=add('option',sel,summary(s));opt.value=s.id;});sel.value=selectedId||'';}
   function loadNote(){const s=target(),box=document.getElementById('fa-note');try{box.value=s?localStorage.getItem('sg_field_note_'+s.id)||'':'';}catch(e){box.value='';}}
   function init(){
     const style=add('style',document.head);style.textContent=`
-      #fa-launch{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:16px;z-index:1100;background:#173d53;color:white;border:0;border-radius:28px;padding:15px 22px;box-shadow:0 3px 14px #0004;font:600 15px sans-serif;min-height:48px}
-      #fa-panel{border:0;border-radius:18px;padding:0;width:min(620px,calc(100vw - 20px));max-height:90dvh;color:#193344;background:#f6f8fa;box-shadow:0 8px 50px #0005;overflow:auto}#fa-panel::backdrop{background:#10233088}
-      #fa-panel header{position:sticky;top:0;background:#173d53;color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:1}#fa-panel header button{background:transparent;color:white;border:1px solid #ffffff88}
-      #fa-body{padding:16px;display:grid;gap:12px}#fa-panel button,#fa-panel input,#fa-panel select,#fa-panel textarea{font:inherit;min-height:44px;border-radius:8px;border:1px solid #c6d2da;padding:9px;max-width:100%;box-sizing:border-box}#fa-panel button{cursor:pointer;background:white;color:#173d53}#fa-panel button:disabled{opacity:.6}#fa-panel textarea{width:100%;min-height:85px}#fa-panel select{width:100%;background:white}#fa-panel input[type=text]{width:100%}#fa-panel input[type=checkbox]{min-height:20px;vertical-align:middle}
-      .fa-row{display:flex;gap:8px;flex-wrap:wrap}.fa-card{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:12px;border-radius:10px;line-height:1.6}.fa-muted{font-size:12px;color:#586b76}#fa-answer{border-left:4px solid #218178;min-height:64px}#fa-context{max-height:200px;overflow:auto}#fa-panel summary{cursor:pointer;padding:8px 0}#ci{padding-bottom:85px!important}
+      #fa-launch{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));right:16px;z-index:1100;background:#173d53;color:#fff;border:0;border-radius:28px;padding:15px 22px;box-shadow:0 4px 20px #0003;font:600 15px sans-serif;min-height:48px;cursor:pointer}
+      #fa-panel{border:0;border-radius:24px;padding:0;width:min(480px,calc(100vw - 24px));height:min(740px,calc(100dvh - 32px));max-height:calc(100dvh - 32px);color:#193344;background:#f5f8fa;box-shadow:0 16px 70px #10233050;overflow:hidden;box-sizing:border-box;font:14px/1.5 system-ui,sans-serif}#fa-panel[open]{display:flex;flex-direction:column}#fa-panel::backdrop{background:#10233066;backdrop-filter:blur(3px)}
+      #fa-panel header{background:#173d53;color:#fff;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}#fa-panel header small{display:block;color:#c8dfdf;font-size:12px;margin-top:3px}#fa-panel header button{background:transparent;color:#fff;border:1px solid #ffffff50}
+      #fa-panel button,#fa-panel input,#fa-panel select,#fa-panel textarea{font:inherit;min-height:44px;border-radius:12px;border:1px solid #d3dfe5;padding:10px;max-width:100%;box-sizing:border-box}#fa-panel button{cursor:pointer;background:white;color:#173d53}#fa-panel button:disabled{opacity:.5;cursor:default}#fa-panel button:focus-visible,#fa-panel input:focus-visible{outline:3px solid #53aaa3;outline-offset:2px}#fa-panel select,#fa-panel textarea{width:100%;background:white}#fa-panel textarea{min-height:90px}#fa-panel input[type=checkbox]{min-height:18px;vertical-align:middle}
+      #fa-options{padding:8px 18px;background:white;border-bottom:1px solid #e0e8ed;flex-shrink:0;max-height:38%;overflow:auto}#fa-options summary{cursor:pointer;color:#536b78;padding:5px 0}#fa-tools{display:grid;gap:10px;padding:10px 0}.fa-row{display:flex;gap:8px;flex-wrap:wrap}.fa-muted{font-size:12px;color:#627785}#fa-context{white-space:pre-wrap;font-size:12px;color:#627785}
+      #fa-messages{flex:1;min-height:0;overflow:auto;padding:22px 18px;overscroll-behavior:contain;display:flex;flex-direction:column;gap:18px}.fa-message{display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0}.fa-user{align-items:flex-end}.fa-speaker{font-size:11px;color:#6f818d;margin:0 5px 5px}.fa-bubble{max-width:90%;padding:13px 16px;border-radius:4px 18px 18px 18px;background:#fff;border:1px solid #e4ebef;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}.fa-user .fa-bubble{background:#173d53;border-color:#173d53;color:#fff;border-radius:18px 4px 18px 18px}
+      #fa-compose{background:white;border-top:1px solid #e0e8ed;padding:12px 16px max(14px,env(safe-area-inset-bottom));flex-shrink:0}#fa-status{font-size:12px;color:#607b85;min-height:20px;margin-bottom:8px}#fa-input-row{display:flex;gap:8px}#fa-question{flex:1;min-width:0;background:#f5f8fa;border:0!important}#fa-send{background:#173d53!important;color:white!important;padding:10px 16px!important}#fa-voice-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}#fa-mic{border:0!important;background:#e9f5f2!important;color:#176858!important}#fa-mic[aria-pressed=true]{background:#ffeae5!important;color:#a53724!important}#fa-voice-row label{font-size:12px;color:#627785}.fa-quick{display:flex;flex-wrap:wrap;gap:7px;padding:0 18px 12px}.fa-quick button{border-radius:24px!important;font-size:12px!important;min-height:36px!important}#ci{padding-bottom:85px!important}
+      @media(max-width:520px){#fa-panel{width:100%;max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;margin:0}#fa-panel header{padding-top:max(16px,env(safe-area-inset-top))}}
     `;
     const launch=button(document.body,'AI에게 물어보기',open);launch.id='fa-launch';launch.setAttribute('aria-haspopup','dialog');
     const panel=add('dialog',document.body);panel.id='fa-panel';panel.setAttribute('aria-labelledby','fa-title');
-    const header=add('header',panel);add('strong',header,'AI Field Assistant').id='fa-title';button(header,'닫기',()=>panel.close());
-    panel.addEventListener('close',()=>{recognition?.abort();window.speechSynthesis?.cancel();launch.focus();});
-    const body=add('div',panel);body.id='fa-body';
-    add('div',body,'현지 시간 기준 · 싱가포르/조호르 UTC+8 · 한국 출도착 UTC+9','fa-muted');
-    add('div',body,'','fa-card').id='fa-now';add('div',body,'','fa-card').id='fa-next';
-    const label=add('label',body,'질문할 일정 (미리보기)');label.htmlFor='fa-schedule';
-    const sel=add('select',body);sel.id='fa-schedule';sel.onchange=()=>{selectedId=sel.value||null;lastTarget=null;refresh();};
-    add('div',body,'','fa-card').id='fa-context';
-    const links=add('div',body,'','fa-row');
+    const header=add('header',panel),heading=add('div',header);add('strong',heading,'출장 도우미').id='fa-title';add('small',heading,'HAEAHN · Singapore DC Visit');button(header,'닫기',()=>panel.close());
+    panel.addEventListener('close',()=>{stopVoice();const pending=activeRequest;activeRequest=null;pending?.abort();launch.focus();});
+    const options=add('details',panel);options.id='fa-options';add('summary',options,'일정 선택 · 출장자 · 현장 메모');
+    const tools=add('div',options);tools.id='fa-tools';
+    const label=add('label',tools,'질문할 일정');label.htmlFor='fa-schedule';
+    const sel=add('select',tools);sel.id='fa-schedule';sel.onchange=()=>{selectedId=sel.value||null;lastTarget=null;refresh();};
+    add('div',tools).id='fa-context';
+    const pl=add('label',tools,'출장자 (좌석 질문용)');pl.htmlFor='fa-person';const ps=add('select',tools);ps.id='fa-person';add('option',ps,'선택 안 함').value='';people.forEach(p=>add('option',ps,p.name).value=p.name);
+    const links=add('div',tools,'','fa-row');
     button(links,'기존 일정 보기',()=>{const s=lastTarget||target();if(s){switchDay(s.dayIndex);panel.close();}});
-    button(links,'현재 위치 → 목적지',()=>{
-      const s=lastTarget||target();
-      if(!s||s.WHERE.map_pin_usage==='reference_only'||(!s.WHERE.place_name_en&&(s.WHERE.latitude===null||s.WHERE.longitude===null))){result(s?.metadata.note||'목적지 위치가 등록되어 있지 않습니다.');return;}
-      result('기존 앱에 등록된 위치로 Google Maps를 엽니다. 현재 위치와 이동수단은 지도에서 확인하세요.');
-      window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(s.WHERE.place_name_en||s.WHERE.latitude+','+s.WHERE.longitude),'_blank','noopener,noreferrer');
-    });
+    button(links,'현재 위치 → 목적지',()=>{const s=lastTarget||target();if(!s||s.WHERE.map_pin_usage==='reference_only'||(!s.WHERE.place_name_en&&(s.WHERE.latitude===null||s.WHERE.longitude===null))){result(s?.metadata.note||'목적지 위치가 등록되어 있지 않습니다.');return;}window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(s.WHERE.place_name_en||s.WHERE.latitude+','+s.WHERE.longitude),'_blank','noopener,noreferrer');});
     button(links,'당일 경로',()=>{const s=lastTarget||target();if(s){panel.close();switchDay(s.dayIndex);if(!DAYS[s.dayIndex].monday)openPreview(s.dayIndex);}});
-    button(links,'AI 당일 시나리오',()=>{const s=lastTarget||target();if(s){if(DAYS[s.dayIndex].monday){result('월요일은 자유 탐방입니다. 기존 일정에서 코스를 선택해 확인하세요.');return;}panel.close();openSim(s.dayIndex);}});
-    const pl=add('label',body,'출장자 (좌석 질문용)');pl.htmlFor='fa-person';const ps=add('select',body);ps.id='fa-person';add('option',ps,'선택 안 함').value='';people.forEach(p=>add('option',ps,p.name).value=p.name);
-    const quick=add('div',body,'','fa-row');['오늘 일정 알려줘','다음 일정 어디야','KDCEA 어디로 가?','여기서 뭘 봐야 해?'].forEach(q=>button(quick,q,()=>{document.getElementById('fa-question').value=q;ask();}));
-    const form=add('form',body);const ql=add('label',form,'출장 일정 질문');ql.htmlFor='fa-question';const input=add('input',form);input.id='fa-question';input.type='text';input.maxLength=1000;input.placeholder='예: 내일 일정, 임상철 좌석';
-    const row=add('div',form,'','fa-row');const send=button(row,'질문 보내기',ask);send.id='fa-send';
-    form.onsubmit=e=>{e.preventDefault();ask();};
-    const mic=button(row,'마이크',()=>{
-      if(recognition){recognition.stop();return;}
-      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
-      window.speechSynthesis?.cancel();recognition=new SR();recognition.lang='ko-KR';recognition.interimResults=false;
-      recognition.onstart=()=>{mic.textContent='듣기 중 · 중지';};recognition.onend=()=>{recognition=null;mic.textContent='마이크';};
-      recognition.onerror=e=>result(e.error==='not-allowed'?'마이크 권한을 허용하거나 텍스트로 질문하세요.':'음성 인식을 완료하지 못했습니다. 텍스트 입력을 이용하세요.');
-      recognition.onresult=e=>{input.value=e.results[0][0].transcript;ask();};
-      try{recognition.start();}catch(e){recognition=null;result('마이크를 시작하지 못했습니다. 텍스트 입력을 이용하세요.');}
-    });
+    button(links,'AI 당일 시나리오',()=>{const s=lastTarget||target();if(s){if(DAYS[s.dayIndex].monday){result('월요일은 자유 탐방이에요. 기존 일정에서 코스를 선택해주세요.');return;}panel.close();openSim(s.dayIndex);}});
+    button(tools,'선택 장소 체크리스트',()=>result(checklist(target())));
+    const nl=add('label',tools,'선택 일정의 현장 메모');nl.htmlFor='fa-note';const note=add('textarea',tools);note.id='fa-note';note.maxLength=10000;
+    button(tools,'이 기기에 메모 저장',()=>{const s=target();if(!s){result('메모를 저장할 일정을 선택해주세요.');return;}try{localStorage.setItem('sg_field_note_'+s.id,note.value);result(s.title+'에 메모를 저장했어요. 이 브라우저에만 저장됩니다.');}catch(e){result('저장 공간을 사용할 수 없어요. 메모를 복사해 보관해주세요.');}});
+    add('div',tools,'메모는 이 브라우저에만 저장되며 AI 서버로 보내지 않습니다.','fa-muted');
+    const thread=add('div',panel);thread.id='fa-messages';thread.setAttribute('role','log');thread.setAttribute('aria-label','출장 도우미와의 대화');thread.setAttribute('aria-live','polite');
+    bubble('assistant','안녕하세요! 출장 중 궁금한 점을 물어보세요.\n아래 마이크를 누르면 말로 대화할 수 있어요.',false);
+    const quick=add('div',panel,'','fa-quick');['오늘 일정 알려줘','다음 일정 어디야','KDCEA 어디로 가?'].forEach(q=>button(quick,q,()=>{document.getElementById('fa-question').value=q;ask();}));
+    const form=add('form',panel);form.id='fa-compose';const state=add('div',form,'마이크를 누르거나 메시지를 입력하세요.');state.id='fa-status';state.setAttribute('role','status');
+    const row=add('div',form);row.id='fa-input-row';const input=add('input',row);input.id='fa-question';input.type='text';input.maxLength=1000;input.placeholder='메시지를 입력하세요';input.setAttribute('aria-label','출장 도우미에게 보낼 메시지');input.autocomplete='off';
+    const send=button(row,'보내기',ask);send.id='fa-send';form.onsubmit=e=>{e.preventDefault();ask();};
+    const voiceRow=add('div',form);voiceRow.id='fa-voice-row';
+    const mic=button(voiceRow,'🎙 음성 대화',()=>{if(voiceMode||speaking){stopVoice();return;}voiceMode=true;document.getElementById('fa-read').checked='speechSynthesis' in window;mic.textContent='■ 대화 중지';mic.setAttribute('aria-pressed','true');startListening();});mic.id='fa-mic';mic.setAttribute('aria-pressed','false');
     if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){mic.disabled=true;mic.textContent='음성 입력 미지원';}
-    const rl=add('label',body);const read=add('input',rl);read.type='checkbox';read.id='fa-read';rl.appendChild(document.createTextNode(' 답변 읽어주기'));read.disabled=!('speechSynthesis' in window);read.onchange=()=>{if(!read.checked)window.speechSynthesis?.cancel();};
-    button(body,'음성 재생 중지',()=>window.speechSynthesis?.cancel());
-    add('div',body,'음성 인식은 브라우저 제공 기능이며 기기·네트워크·권한에 따라 제한됩니다.','fa-muted');
-    const out=add('div',body,'질문하거나 일정을 선택하세요. 오프라인에서도 주요 일정 질문에 답합니다.','fa-card');out.id='fa-answer';out.setAttribute('role','status');out.setAttribute('aria-live','polite');
-    const notes=add('details',body);add('summary',notes,'현장 체크리스트 · 메모');button(notes,'선택 장소 체크리스트',()=>result(checklist(target())));
-    const nl=add('label',notes,'선택 일정의 현장 메모');nl.htmlFor='fa-note';const note=add('textarea',notes);note.id='fa-note';note.maxLength=10000;
-    button(notes,'이 기기에 메모 저장',()=>{const s=target();if(!s){result('메모를 저장할 일정을 선택하세요.');return;}try{localStorage.setItem('sg_field_note_'+s.id,note.value);result(s.title+'에 메모를 저장했습니다. 이 브라우저에만 저장됩니다.');}catch(e){result('저장 공간을 사용할 수 없습니다. 메모를 복사해 보관하세요.');}});
-    add('div',notes,'메모는 이 브라우저에만 저장되며 AI 서버에 보내지 않습니다. 기기 간 동기화되지 않습니다.','fa-muted');
-    fillSelect();refresh();setInterval(()=>{if(panel.open){const noteFocused=document.activeElement===note;if(!noteFocused){const saved=note.value;refresh();note.value=saved;}}},60000);
+    const rl=add('label',voiceRow);const read=add('input',rl);read.type='checkbox';read.id='fa-read';rl.appendChild(document.createTextNode(' 답변 듣기'));read.disabled=!('speechSynthesis' in window);read.onchange=()=>{if(!read.checked){speechToken++;speaking=false;window.speechSynthesis?.cancel();startListening();}};
+    fillSelect();refresh();
+    const resize=()=>{if(panel.open&&window.visualViewport){panel.style.height=Math.min(740,window.visualViewport.height)+'px';panel.style.top=window.visualViewport.offsetTop+'px';}};
+    window.visualViewport?.addEventListener('resize',resize);window.visualViewport?.addEventListener('scroll',resize);
   }
-  function overview(parent){
-    const state=timeline(),card=add('div',parent,'','fa-card');card.id='fa-overview';
-    card.style.cssText='margin:10px 0;background:#edf5f6;color:#193344;border:1px solid #d3e4e8';
-    add('strong',card,'HAEAHN · AI Field Assistant');
-    add('div',card,'NOW · '+(state.current?summary(state.current)+' (진행 여부 확인 필요)':'현재 시작된 당일 일정 없음'));
-    add('div',card,'NEXT · '+summary(state.next));
-    button(card,'이동·도착 안내 / AI에게 물어보기',open);
-    add('div',card,FLIGHT_NOTE,'fa-muted');
-  }
-  function open(){fillSelect();refresh();document.getElementById('fa-panel').showModal();}
+  function open(){fillSelect();refresh();document.getElementById('fa-panel').showModal();scrollChat();}
+
   applyVerifiedFlights();
   patchSafety();
   document.addEventListener('DOMContentLoaded',init);
-  return {schedules,timeline,answer,normalize,dateOf,stamp,checks,people,flights:AIR_TRIP,KDCEA,FLIGHT_NOTE,overview};
+  return {schedules,timeline,answer,normalize,dateOf,stamp,checks,people,flights:AIR_TRIP,KDCEA,FLIGHT_NOTE};
 })();
 
 // ── PWA Service Worker — 웹 배포 시 오프라인 캐싱 ──────────────
