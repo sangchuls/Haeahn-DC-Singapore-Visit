@@ -2,7 +2,7 @@
 // 앱 셸(index.html)을 캐시해 비행기·터널 등 네트워크 없는 곳에서도 열리게 한다.
 // 지도 타일은 캐시하지 않는다(용량이 크고 수시로 바뀜).
 
-const CACHE = 'sg-guide-v2';
+const CACHE = 'sg-guide-v3-field-assistant';
 const SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {

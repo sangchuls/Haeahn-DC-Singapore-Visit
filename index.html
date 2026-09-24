@@ -2301,7 +2301,7 @@ function drawRoute(trObj){
     head: makeHead(color, coords[0]),
     onReach: function(i){
       if(i === coords.length-1){
-        curMarkers.push(pinIcon(to[0],to[1],'🔴','도착',color,['도착','Arrive']));
+        curMarkers.push(pinIcon(to[0],to[1],'🔴',trObj.map_pin_usage==='reference_only'?'참고 위치':'도착',color,trObj.map_pin_usage==='reference_only'?['참고 위치 · 미확정','Reference only']:['도착','Arrive']));
       }
     }
   });
@@ -2356,6 +2356,7 @@ function renderDay(i){
   document.getElementById('hBadge').style.background=d.bc;
   const ci=document.getElementById('ci');
   ci.innerHTML='';
+  FieldAssistant.overview(ci);
 
   // 준비 체크리스트 탭 — 지도 대신 체크리스트만
   if(d.checklist){
@@ -2432,7 +2433,7 @@ function buildStep(it,idx){
 
 function buildDetailHTML(it){
   // 섹션들 — 텍스트만 (교통수단은 아래 DOM 방식으로)
-  let h='';
+  let h=it.verification_status==='unverified'?'<div class="swarn">'+esc(it.verification_note||'미확정 정보 — 안내 확인 필요')+'</div>':'';
   (it.secs||[]).forEach(s=>{
     h+='<div class="dsec"><div class="dslbl">'+s.t+'</div>'
       +'<div class="dsbody" style="white-space:pre-line">'+s.b+'</div></div>';
@@ -2447,7 +2448,7 @@ function buildDetailHTML(it){
     h+='<div class="tipbox"><div class="tiplbl">💡 실전 팁</div>'
       +'<div class="tipbody">'+it.tip+'</div></div>';
   }
-  if(it.mapQ){
+  if(it.mapQ && it.map_pin_usage!=='reference_only'){
     var enc=encodeURIComponent(it.mapQ);
     h+='<button class="mapbtn" onclick="window.open(\'https://www.google.com/maps/search/?api=1&query='+enc+'\',\'_blank\')">🗺️ 구글맵에서 보기</button>';
   }
@@ -2488,12 +2489,14 @@ function buildTransportDOM(trKey){
     // 구글맵 네비 버튼
     const b2=document.createElement('button'); b2.className='nbtn nbtn-google';
     b2.textContent='🔵 구글맵 네비';
+    if(tr.map_pin_usage==='reference_only'){b2.disabled=true;b2.textContent='목적지 확인 필요';}
     b2.addEventListener('click',function(e){e.stopPropagation();openGoogleNav(trKey,tr.id);});
     btns.appendChild(b2);
     // Grab 버튼 (Grab인 경우만)
     if(tr.id==='grab'){
       const b3=document.createElement('button'); b3.className='nbtn nbtn-grab';
       b3.textContent='🚗 Grab 열기';
+      if(tr.map_pin_usage==='reference_only'){b3.disabled=true;b3.textContent='터미널 확인 필요';}
       b3.addEventListener('click',function(e){e.stopPropagation();openGrab(trKey);});
       btns.appendChild(b3);
     }
@@ -2690,6 +2693,11 @@ function openPreview(dayIdx){
 
   var scroll = document.getElementById('preview-scroll');
   scroll.innerHTML = '';
+  if(d.items.some(it=>it.map_pin_usage==='reference_only')){
+    var referenceNotice=document.createElement('div');referenceNotice.className='swarn';
+    referenceNotice.textContent='미확정 위치가 포함된 참고 경로입니다. 실제 목적지와 집결지는 확정 안내를 확인하세요.';
+    scroll.appendChild(referenceNotice);
+  }
 
   // 전체 동선 한번에 그리기 버튼
   var drawBtn = document.createElement('button');
@@ -2807,10 +2815,10 @@ function drawDayRoute(dayIdx){
       curMarkers.push(L.marker(mid,{icon:aic,interactive:false}).addTo(map));
     }
     var ic=L.divIcon({className:'',
-      html:pinHTML(it.icon, c, labelFor(it.title)),
+      html:pinHTML(it.icon, c, it.map_pin_usage==='reference_only'?['참고 위치 · 미확정','Reference only']:labelFor(it.title)),
       iconSize:[28,28],iconAnchor:[14,14]});
     curMarkers.push(L.marker([it.lat,it.lng],{icon:ic}).addTo(map)
-      .bindPopup('<b style="font-size:11px">'+it.time+' '+it.title+'</b>'));
+      .bindPopup('<b style="font-size:11px">'+it.time+' '+it.title+'</b>'+(it.map_pin_usage==='reference_only'?'<br>참고 위치 · 실제 목적지 확인 필요':'')));
   }
 
   animatePath(curLine, latlngs, {
@@ -2826,6 +2834,7 @@ function drawDayRoute(dayIdx){
 function openGmapsDay(dayIdx){
   var d = DAYS[dayIdx];
   if(!d) return;
+  if((d.items||[]).some(it=>it.map_pin_usage==='reference_only')){ alert('미확정 목적지가 포함되어 전체 길찾기를 열지 않습니다. 참관단 확정 안내를 확인하세요.'); return; }
   var pts = d.items.filter(function(it){ return it.lat && it.lng; });
   if(pts.length < 2) return;
   // 구글맵 멀티스톱: origin/destination + waypoints
@@ -2870,6 +2879,9 @@ function buildDayContext(dayIdx){
   lines.push('팀: 김상범(소장/비즈니스석), 정재수(수석), 임상철(책임), 류환재(선임)');
   lines.push('소속: 해안건축 데이터센터팀 — 건축설계 전문가');
   lines.push('');
+  lines.push('기존 앱 자료이며 확정 문서 재검증 전입니다. 추측으로 시간·주소·담당자·항공정보를 확정하지 마세요.');
+  lines.push('KDCEA 9/29: 공문상 조호바루, 전용버스 단체 이동. Jalan Digital 11 지도 PIN은 등록주소 참고용이며 확정 목적지가 아닙니다. 참관단 확정 이메일 확인 필요.');
+  lines.push('항공 충돌: 사용자 요약은 귀국 SQ600/T2, 기존 앱은 SQ606/T3. PDF 미첨부로 대조 전입니다. 수하물·터미널·좌석을 확정하지 마세요.');
   lines.push('당일 일정:');
   (d.items||[]).forEach(function(it,i){
     var line = (i+1)+'. ['+it.time+'] '+it.title+' @ '+it.loc;
@@ -3196,7 +3208,10 @@ function runSimulation(dayIdx){
 function renderSimResult(result, dayIdx, isLive){
   var d = DAYS[dayIdx];
   var content = document.getElementById('sim-content');
-  content.innerHTML = '';
+  // Simulation dialogs are hypothetical; conflicts remain visible for built-in and live responses.
+  var notice=document.createElement('div');notice.className='swarn';
+  notice.textContent='예상 상황 연습용이며 확정 일정 안내가 아닙니다. '+(dayIdx===3?FieldAssistant.KDCEA:FieldAssistant.FLIGHT_NOTE);
+  content.replaceChildren(notice);
 
   // 시나리오 출처 표시
   var src = document.createElement('div');
@@ -3612,6 +3627,7 @@ function mk(tag,cls){const e=document.createElement(tag);if(cls)e.className=cls;
 const GM_MODE = {driving:'driving', transit:'transit', walking:'walking'};
 
 function openGoogleNav(trKey, trId){
+  if(['bus_mbs_jb','bus_jb_hotel','d4_airport'].includes(trKey)){ alert('목적지 확인 전에는 길찾기를 제공하지 않습니다. 참관단 안내 또는 항공권 PDF를 확인하세요.'); return; }
   const trs = TR[trKey];
   if(!trs) return;
   const tr = trs.find(t=>t.id===trId);
@@ -3630,6 +3646,7 @@ function openGoogleNav(trKey, trId){
 }
 
 function openGrab(trKey){
+  if(['bus_mbs_jb','bus_jb_hotel','d4_airport'].includes(trKey)){ alert('목적지 확인 전에는 차량 호출을 연결하지 않습니다. 확정 안내를 확인하세요.'); return; }
   const trs = TR[trKey];
   if(!trs) return;
   const tr = trs.find(t=>t.id==='grab');
@@ -3653,6 +3670,229 @@ function openGrab(trKey){
     window.open(grabWeb,'_blank');
   }, 1500);
 }
+
+// ── Field Assistant: existing DAYS/TR remain the source, no framework required ──
+const FieldAssistant = (() => {
+  const KDCEA = '공문에는 조호바루로 기재되어 있으며, 현재 지도 위치는 데이터센터 등록주소를 기준으로 표시한 참고 위치입니다. 9월 29일 14:00 일정은 전용버스 단체 이동입니다. 정확한 목적지와 집결지는 참관단 확정 안내 확인이 필요합니다.';
+  const FLIGHT_NOTE = '항공권 PDF 확인 전입니다. 사용자 제공 요약과 기존 앱의 귀국편명(SQ606/SQ600), 터미널(T3/T2), 수하물 정보가 다릅니다. 기존 일정의 항공 안내를 확정 정보로 사용하지 마세요.';
+  const people = [
+    {name:'김상범',en:'KIM SANG BEOM',out:'18A',back:'20K',cabin:'Business',baggage:'40kg'},
+    {name:'정재수',en:'CHUNG JAESOO',out:'64D',back:'66D',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'},
+    {name:'임상철',en:'LIM SANGCHUL',out:'66G',back:'64G',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'},
+    {name:'류환재',en:'RYU HWANJAE',out:'67D',back:'63G',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'}
+  ];
+  const checks = {
+    Architecture:'장비 반입·교체 동선, 방화구획, 증설 공간은 어떻게 계획했나요?',
+    Electrical:'전력 인입, UPS·발전기 구성과 정비 시 공급 경로를 확인하세요.',
+    Mechanical:'냉각 방식, 공기·액체 배관 경로, 누수 대응을 질문하세요.',
+    Structure:'서버·설비 하중, 진동, 장비 교체 개구부 조건을 확인하세요.',
+    Security:'출입 단계와 방문자 동선, 촬영 허용 구역을 먼저 확인하세요.',
+    Operation:'정비 동선, 장애 대응, BMS/DCIM 운영 방법을 질문하세요.',
+    Sustainability:'에너지·물 사용량 측정 범위와 운영 개선 방법을 질문하세요.'
+  };
+  const clean = v => String(v||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&');
+  const meta = (status='provisional',source='existing app',note='확정 문서 재검증 전') => ({verification_status:status,source,note});
+  function dateOf(day){return day && /^\d+\/\d+$/.test(day.date)?'2026-'+day.date.split('/').map(v=>v.padStart(2,'0')).join('-'):null;}
+  function localDate(now=new Date()){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Singapore',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
+  function stamp(date,time,zone='Asia/Singapore'){
+    const m=String(time||'').match(/^(\d{2}:\d{2})/);
+    return m?Date.parse(date+'T'+m[1]+':00'+(zone==='Asia/Seoul'?'+09:00':'+08:00')):NaN;
+  }
+  function items(day){return day.monday?(day.routes.find(r=>r.id===curRoute)||day.routes[0]).spots:(day.items||[]);}
+  function normalize(day,it,index){
+    const date=dateOf(day), title=it.title||it.name;
+    const kd=date==='2026-09-29'&&(/Brightray|조호르 출발|싱가포르 귀환/.test(title));
+    const flight=date==='2026-10-02'&&(/창이|SIN→ICN/.test(title));
+    const reference=kd||flight||it.map_pin_usage==='reference_only';
+    const zone=date==='2026-09-27'&&/인천국제|ICN→SIN/.test(title+' '+it.loc)||date==='2026-10-02'&&/인천공항 T1 도착/.test(title)?'Asia/Seoul':'Asia/Singapore';
+    const transports=TR[it.trKey]||[];
+    const sections=(it.secs||[]).map(s=>clean(s.t)+': '+clean(s.b)).join('\n');
+    const isDC=it.type==='tour'||/데이터센터|DC 투어|Schneider/.test(title);
+    return {
+      id:date+'-'+(day.monday?curRoute+'-':'')+index,title,dayIndex:DAYS.indexOf(day),itemIndex:index,
+      WHEN:{date,meeting_time:null,departure_time:/출발/.test(title)?it.time:null,start_time:it.time,end_time:null,timezone:zone},
+      WHERE:{place_name_ko:clean(it.loc||title),place_name_en:null,address:null,latitude:it.lat??null,longitude:it.lng??null,entrance:null,map_url:!reference&&it.mapQ?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(it.mapQ):null,map_pin_usage:reference?'reference_only':'existing_app'},
+      HOW:{departure_location:transports[0]?.from||null,transportation:kd?'chartered_bus':it.how||transports.map(t=>t.name).join(' / ')||null,estimated_duration:null,recommended_departure:null,buffer_time:null,details:transports.map(t=>clean(t.body)).join('\n')},
+      ARRIVAL:{meeting_point:null,entrance:null,contact_person:null,contact:null,access_procedure:null},
+      WHAT:{visit_purpose:null,meeting_purpose:null,activity:clean(it.desc)||sections},
+      ACTION:{what_to_do:clean(it.tip)||null,what_to_check:isDC?checks:null,what_to_ask:isDC?Object.values(checks):[],what_to_photograph:null,what_to_record:null},
+      PEOPLE:{participants:[],local_contact:null,organization:null,trip_members:people.map(p=>p.name),note:'출장자 전원이 개별 투어 참가자로 확정된 것은 아닙니다.'},
+      MATERIAL:{required_documents:[],drawings:[],presentation:null,passport:null,namecard:null,etc:[]},
+      NEXT:{next_schedule:null,next_destination:null,recommended_departure_time:null},
+      NOTE:{memo:clean(it.warn),site_notes:[]},
+      metadata:{...meta(reference?'unverified':'provisional'),fields:{'WHERE':meta(reference?'unverified':'provisional'),'WHEN':meta(),'PEOPLE.participants':meta('unverified')},note:kd?KDCEA:flight?FLIGHT_NOTE:it.verification_note||'기존 앱 자료 · 실제 운영 여부 확인 필요'},
+      start:stamp(date,it.time,zone),isDC
+    };
+  }
+  function schedules(){
+    const list=DAYS.filter(d=>dateOf(d)).flatMap(d=>items(d).map((it,i)=>normalize(d,it,i)));
+    list.sort((a,b)=>a.start-b.start);
+    list.forEach((s,i)=>{const next=list[i+1];if(next)s.NEXT={next_schedule:next.id,next_destination:next.title,recommended_departure_time:null};});
+    return list;
+  }
+  function timeline(now=new Date()){
+    const list=schedules(),today=localDate(now),t=now.getTime();
+    return {today,list,current:list.filter(s=>s.start<=t&&s.WHEN.date===today).at(-1)||null,next:list.find(s=>s.start>t)||null};
+  }
+  function summary(s){return s?s.WHEN.date+' '+s.WHEN.start_time+' '+(s.WHEN.timezone==='Asia/Seoul'?'한국':'현지')+' · '+s.title:'등록된 일정 없음';}
+  function checklist(s){return s?.isDC?'현장 질문 제안 (시설의 확인된 사양이 아닙니다)\n'+Object.entries(checks).map(([k,v])=>k+' — '+v).join('\n'):'선택 일정은 데이터센터 방문으로 등록되어 있지 않습니다. 일정 상세의 안내를 확인하세요.';}
+  let selectedId=null,lastTarget=null,recognition=null,busy=false;
+  function target(){return schedules().find(s=>s.id===selectedId)||timeline().current||timeline().next;}
+  function answer(q,now=new Date(),selected=null){
+    const t=timeline(now),list=t.list;
+    let s=selected||t.current||t.next;
+    if(/다음/.test(q))s=t.next;
+    const named=list.find(v=>/Schneider|슈나이더/i.test(q)?/Schneider/.test(v.title):/Brightray|브라이트레이/i.test(q)?/Brightray/.test(v.title):false);
+    if(named)s=named;
+    if(/KDCEA|조호|쿨라이|Jalan|Brightray|브라이트레이/i.test(q)&&!/네트워킹/.test(q)){
+      s=list.find(v=>/Brightray/.test(v.title));lastTarget=s;
+      return KDCEA+(/봐|보아|확인|질문|체크/.test(q)?'\n\n'+checklist(s):'');
+    }
+    if(/비행|좌석|항공|수하물|터미널|공항/.test(q)){
+      const p=people.find(p=>q.includes(p.name)||q.toUpperCase().includes(p.en))||people.find(p=>p.name===document.getElementById('fa-person')?.value);
+      return FLIGHT_NOTE+'\n\n사용자 제공 요약 (manual input / provisional):\n9/27 SQ607 · 인천 T1 09:00 → 싱가포르 14:20 · 6시간 20분 · A350-900\n10/2 SQ600 · 싱가포르 T2 08:10 → 인천 T1 15:30 · 6시간 20분\n'+(p?p.name+' · '+p.cabin+' · 출국 '+p.out+' / 귀국 '+p.back+' · '+p.baggage:people.map(p=>p.name+' · 출국 '+p.out+' / 귀국 '+p.back+' · '+p.cabin+' · '+p.baggage).join('\n'))+'\n기존 일정은 귀국일 05:30 호텔 출발·06:00 공항 도착을 제안합니다. 권장안이며 항공권·항공사 안내 확인이 필요합니다.';
+    }
+    if(/오늘|내일/.test(q)&&!/출발|호텔|누구|어떻게/.test(q)){
+      const date=/내일/.test(q)?localDate(new Date(now.getTime()+86400000)):t.today;
+      const dayList=list.filter(v=>v.WHEN.date===date);
+      if(!dayList.length)return date+'에는 등록된 출장 일정이 없습니다. 출장 기간은 2026-09-27 ~ 2026-10-02입니다. 날짜별 미리보기는 아래 일정 선택을 이용하세요.';
+      lastTarget=dayList[0];
+      return '기존 앱 일정 · '+date+(date==='2026-09-28'?' · 자유 탐방 코스 '+curRoute+' (선택안)':'')+'\n'+(/첫/.test(q)?summary(dayList[0]):dayList.map(summary).join('\n'))+(date==='2026-09-29'?'\n\n'+KDCEA:'');
+    }
+    if(/출발|호텔.*나|몇 시.*나/.test(q)){
+      const date=/내일/.test(q)?localDate(new Date(now.getTime()+86400000)):t.today;
+      const dep=list.find(v=>v.WHEN.date===date&&/호텔 출발|숙소 출발|로비/.test(v.title));
+      lastTarget=dep||s;
+      return dep?'기존 일정의 출발 계획: '+summary(dep)+'\n'+clean(dep.HOW.transportation)+'\n확정 집결 안내와 이동 상황을 확인하세요.':date+'의 호텔 출발 시각은 명시적으로 등록되어 있지 않습니다. 이동시간·집결지 확인 전 출발시각을 계산하지 않습니다.';
+    }
+    lastTarget=s;
+    if(!s)return '출장 기간 밖이거나 이후 등록된 일정이 없습니다. 아래에서 날짜별 일정을 선택해 질문하세요.';
+    const prefix=summary(s)+'\n[기존 앱 자료 · '+s.metadata.verification_status+']\n';
+    if(/누구|담당자|연락|만나/.test(q))return prefix+'개별 일정의 만날 담당자·확정 참가자는 등록되어 있지 않습니다. 투어는 회원사별 2명 제한 안내가 있어 4명 전원 참가로 가정하지 않습니다. 참관단 확정 이메일을 확인하세요.';
+    if(/뭘|무엇|체크|질문|확인할|봐야/.test(q))return prefix+checklist(s)+'\n\n'+(s.ACTION.what_to_do||'도착 후 행동은 확정 안내 확인 필요');
+    if(/어디|어떻게|이동|길|다음|현재|지금/.test(q))return prefix+(s.WHERE.map_pin_usage==='reference_only'?s.metadata.note:s.WHERE.place_name_ko+'\n이동: '+(s.HOW.transportation||'등록 정보 없음')+'\n'+s.HOW.details)+'\n도착 후: '+(s.ACTION.what_to_do||'현장 안내 확인 필요');
+    return null;
+  }
+  function patchSafety(){
+    DAYS.forEach(d=>(d.items||[]).forEach(it=>{
+      if(dateOf(d)==='2026-09-29'&&/Brightray|조호르 출발|싱가포르 귀환/.test(it.title)){
+        it.verification_status='unverified';it.map_pin_usage='reference_only';it.verification_note=KDCEA;
+        it.warn=(it.warn?it.warn+'<br>':'')+'미확정 목적지 · 지도 PIN/경로는 참고용 · 전용버스 단체 이동';
+      }
+      if(dateOf(d)==='2026-10-02'&&/창이|SIN→ICN/.test(it.title)){
+        it.verification_status='unverified';it.map_pin_usage='reference_only';it.verification_note=FLIGHT_NOTE;
+        it.warn=(it.warn?it.warn+'<br>':'')+FLIGHT_NOTE;
+      }
+      if((it.secs||[]).some(v=>/23kg|30kg|SQ606/.test(v.b))&&!it.verification_note){it.verification_status='unverified';it.verification_note=FLIGHT_NOTE;}
+      if(/장소.{0,10}협의|장소 미정/.test((it.loc||'')+' '+(it.secs||[]).map(s=>clean(s.b)).join(' '))){
+        it.verification_status='unverified';it.map_pin_usage='reference_only';it.verification_note='행사 장소 미확정 · 기존 지도 PIN은 참고용입니다. 주최 측 확정 안내 확인 필요.';
+        it.warn=(it.warn?it.warn+'<br>':'')+it.verification_note;
+      }
+    }));
+    ['bus_mbs_jb','bus_jb_hotel','d4_airport'].forEach(key=>TR[key].forEach(tr=>{tr.verification_status='unverified';tr.map_pin_usage='reference_only';tr.body=(key==='d4_airport'?FLIGHT_NOTE:KDCEA)+'\n참고 경로: '+tr.body;}));
+  }
+  function add(tag,parent,text,cls){const el=document.createElement(tag);if(text)el.textContent=text;if(cls)el.className=cls;if(parent)parent.appendChild(el);return el;}
+  function button(parent,text,fn){const el=add('button',parent,text);el.type='button';el.onclick=fn;return el;}
+  function speak(text){
+    if(!('speechSynthesis' in window))return;
+    window.speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(text);utter.lang='ko-KR';window.speechSynthesis.speak(utter);
+  }
+  function result(text){const out=document.getElementById('fa-answer');out.textContent=text;if(document.getElementById('fa-read').checked)speak(text);}
+  async function ask(){
+    if(busy)return;
+    const input=document.getElementById('fa-question'),q=input.value.trim();if(!q)return;
+    busy=true;document.getElementById('fa-send').disabled=true;
+    try{
+      const s=lastTarget||target(),local=answer(q,new Date(),s);
+      if(local){result(local);return;}
+      if(!navigator.onLine||!/^https?:$/.test(location.protocol)){result('오프라인 일정 조회: 질문을 이해하지 못했습니다. “다음 일정 어디야”, “누구 만나”, “여기서 뭘 봐야 해” 또는 항공편 질문을 이용하세요.');return;}
+      result('등록된 출장 자료에서 답변을 찾고 있습니다…');
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+      try{
+        const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({mode:'assistant',question:q,context:JSON.stringify({now:new Date().toISOString(),selected:s,selected_day:s?listFor(s.WHEN.date):[],constraints:[KDCEA,FLIGHT_NOTE]})})});
+        if(!response.ok)throw new Error('unavailable');const data=await response.json();
+        if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('empty');
+        result('AI 답변 · 기존 자료 기반, 확정 안내와 대조하세요.\n'+data.answer+'\n\n미확정 안내: '+(s?.WHERE.map_pin_usage==='reference_only'?s.metadata.note:'등록되지 않은 정보는 확정할 수 없습니다.'));
+      }catch(e){result('AI 연결이 원활하지 않습니다. 일정 조회와 체크리스트는 계속 사용할 수 있습니다. “다음 일정 어디야”, “오늘 일정 알려줘”, “KDCEA 어디로 가?”로 질문하세요.');}finally{clearTimeout(timer);}
+    }finally{busy=false;document.getElementById('fa-send').disabled=false;}
+  }
+  function listFor(date){return schedules().filter(s=>s.WHEN.date===date);}
+  function refresh(){
+    const state=timeline(),s=target();
+    document.getElementById('fa-now').textContent='NOW · '+(state.current?summary(state.current)+' (시작 시각 기준 · 진행 여부 확인 필요)':'현재 시작된 당일 일정 없음');
+    document.getElementById('fa-next').textContent='NEXT · '+summary(state.next);
+    const details=document.getElementById('fa-context');details.textContent=s?summary(s)+'\nWHERE · '+(s.WHERE.map_pin_usage==='reference_only'?s.metadata.note:s.WHERE.place_name_ko)+'\nHOW · '+(s.HOW.transportation||'이동수단 확인 필요')+'\nLEAVE · '+(s.WHEN.departure_time||'출발 권장시각 미등록')+'\nDO · '+(s.ACTION.what_to_do||'도착 후 안내 확인 필요'):'선택 가능한 출장 일정이 없습니다.';
+    loadNote();
+  }
+  function fillSelect(){const sel=document.getElementById('fa-schedule');sel.replaceChildren();let opt=add('option',sel,'현재 시간 기준');opt.value='';schedules().forEach(s=>{opt=add('option',sel,summary(s));opt.value=s.id;});sel.value=selectedId||'';}
+  function loadNote(){const s=target(),box=document.getElementById('fa-note');try{box.value=s?localStorage.getItem('sg_field_note_'+s.id)||'':'';}catch(e){box.value='';}}
+  function init(){
+    const style=add('style',document.head);style.textContent=`
+      #fa-launch{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:16px;z-index:1100;background:#173d53;color:white;border:0;border-radius:28px;padding:15px 22px;box-shadow:0 3px 14px #0004;font:600 15px sans-serif;min-height:48px}
+      #fa-panel{border:0;border-radius:18px;padding:0;width:min(620px,calc(100vw - 20px));max-height:90dvh;color:#193344;background:#f6f8fa;box-shadow:0 8px 50px #0005;overflow:auto}#fa-panel::backdrop{background:#10233088}
+      #fa-panel header{position:sticky;top:0;background:#173d53;color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:1}#fa-panel header button{background:transparent;color:white;border:1px solid #ffffff88}
+      #fa-body{padding:16px;display:grid;gap:12px}#fa-panel button,#fa-panel input,#fa-panel select,#fa-panel textarea{font:inherit;min-height:44px;border-radius:8px;border:1px solid #c6d2da;padding:9px;max-width:100%;box-sizing:border-box}#fa-panel button{cursor:pointer;background:white;color:#173d53}#fa-panel button:disabled{opacity:.6}#fa-panel textarea{width:100%;min-height:85px}#fa-panel select{width:100%;background:white}#fa-panel input[type=text]{width:100%}#fa-panel input[type=checkbox]{min-height:20px;vertical-align:middle}
+      .fa-row{display:flex;gap:8px;flex-wrap:wrap}.fa-card{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:12px;border-radius:10px;line-height:1.6}.fa-muted{font-size:12px;color:#586b76}#fa-answer{border-left:4px solid #218178;min-height:64px}#fa-context{max-height:200px;overflow:auto}#fa-panel summary{cursor:pointer;padding:8px 0}#ci{padding-bottom:85px!important}
+    `;
+    const launch=button(document.body,'AI에게 물어보기',open);launch.id='fa-launch';launch.setAttribute('aria-haspopup','dialog');
+    const panel=add('dialog',document.body);panel.id='fa-panel';panel.setAttribute('aria-labelledby','fa-title');
+    const header=add('header',panel);add('strong',header,'AI Field Assistant').id='fa-title';button(header,'닫기',()=>panel.close());
+    panel.addEventListener('close',()=>{recognition?.abort();window.speechSynthesis?.cancel();launch.focus();});
+    const body=add('div',panel);body.id='fa-body';
+    add('div',body,'현지 시간 기준 · 싱가포르/조호르 UTC+8 · 한국 출도착 UTC+9','fa-muted');
+    add('div',body,'','fa-card').id='fa-now';add('div',body,'','fa-card').id='fa-next';
+    const label=add('label',body,'질문할 일정 (미리보기)');label.htmlFor='fa-schedule';
+    const sel=add('select',body);sel.id='fa-schedule';sel.onchange=()=>{selectedId=sel.value||null;lastTarget=null;refresh();};
+    add('div',body,'','fa-card').id='fa-context';
+    const links=add('div',body,'','fa-row');
+    button(links,'기존 일정 보기',()=>{const s=lastTarget||target();if(s){switchDay(s.dayIndex);panel.close();}});
+    button(links,'현재 위치 → 목적지',()=>{
+      const s=lastTarget||target();
+      if(!s||s.WHERE.map_pin_usage==='reference_only'||s.WHERE.latitude===null||s.WHERE.longitude===null){result(s?.metadata.note||'목적지 위치가 등록되어 있지 않습니다.');return;}
+      result('기존 앱에 등록된 위치로 Google Maps를 엽니다. 현재 위치와 이동수단은 지도에서 확인하세요.');
+      window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(s.WHERE.latitude+','+s.WHERE.longitude),'_blank','noopener,noreferrer');
+    });
+    button(links,'당일 경로',()=>{const s=lastTarget||target();if(s){panel.close();switchDay(s.dayIndex);if(!DAYS[s.dayIndex].monday)openPreview(s.dayIndex);}});
+    button(links,'AI 당일 시나리오',()=>{const s=lastTarget||target();if(s){if(DAYS[s.dayIndex].monday){result('월요일은 자유 탐방입니다. 기존 일정에서 코스를 선택해 확인하세요.');return;}panel.close();openSim(s.dayIndex);}});
+    const pl=add('label',body,'출장자 (좌석 질문용)');pl.htmlFor='fa-person';const ps=add('select',body);ps.id='fa-person';add('option',ps,'선택 안 함').value='';people.forEach(p=>add('option',ps,p.name).value=p.name);
+    const quick=add('div',body,'','fa-row');['오늘 일정 알려줘','다음 일정 어디야','KDCEA 어디로 가?','여기서 뭘 봐야 해?'].forEach(q=>button(quick,q,()=>{document.getElementById('fa-question').value=q;ask();}));
+    const form=add('form',body);const ql=add('label',form,'출장 일정 질문');ql.htmlFor='fa-question';const input=add('input',form);input.id='fa-question';input.type='text';input.maxLength=1000;input.placeholder='예: 내일 일정, 임상철 좌석';
+    const row=add('div',form,'','fa-row');const send=button(row,'질문 보내기',ask);send.id='fa-send';
+    form.onsubmit=e=>{e.preventDefault();ask();};
+    const mic=button(row,'마이크',()=>{
+      if(recognition){recognition.stop();return;}
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+      window.speechSynthesis?.cancel();recognition=new SR();recognition.lang='ko-KR';recognition.interimResults=false;
+      recognition.onstart=()=>{mic.textContent='듣기 중 · 중지';};recognition.onend=()=>{recognition=null;mic.textContent='마이크';};
+      recognition.onerror=e=>result(e.error==='not-allowed'?'마이크 권한을 허용하거나 텍스트로 질문하세요.':'음성 인식을 완료하지 못했습니다. 텍스트 입력을 이용하세요.');
+      recognition.onresult=e=>{input.value=e.results[0][0].transcript;ask();};
+      try{recognition.start();}catch(e){recognition=null;result('마이크를 시작하지 못했습니다. 텍스트 입력을 이용하세요.');}
+    });
+    if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){mic.disabled=true;mic.textContent='음성 입력 미지원';}
+    const rl=add('label',body);const read=add('input',rl);read.type='checkbox';read.id='fa-read';rl.appendChild(document.createTextNode(' 답변 읽어주기'));read.disabled=!('speechSynthesis' in window);read.onchange=()=>{if(!read.checked)window.speechSynthesis?.cancel();};
+    button(body,'음성 재생 중지',()=>window.speechSynthesis?.cancel());
+    add('div',body,'음성 인식은 브라우저 제공 기능이며 기기·네트워크·권한에 따라 제한됩니다.','fa-muted');
+    const out=add('div',body,'질문하거나 일정을 선택하세요. 오프라인에서도 주요 일정 질문에 답합니다.','fa-card');out.id='fa-answer';out.setAttribute('role','status');out.setAttribute('aria-live','polite');
+    const notes=add('details',body);add('summary',notes,'현장 체크리스트 · 메모');button(notes,'선택 장소 체크리스트',()=>result(checklist(target())));
+    const nl=add('label',notes,'선택 일정의 현장 메모');nl.htmlFor='fa-note';const note=add('textarea',notes);note.id='fa-note';note.maxLength=10000;
+    button(notes,'이 기기에 메모 저장',()=>{const s=target();if(!s){result('메모를 저장할 일정을 선택하세요.');return;}try{localStorage.setItem('sg_field_note_'+s.id,note.value);result(s.title+'에 메모를 저장했습니다. 이 브라우저에만 저장됩니다.');}catch(e){result('저장 공간을 사용할 수 없습니다. 메모를 복사해 보관하세요.');}});
+    add('div',notes,'메모는 이 브라우저에만 저장되며 AI 서버에 보내지 않습니다. 기기 간 동기화되지 않습니다.','fa-muted');
+    fillSelect();refresh();setInterval(()=>{if(panel.open){const noteFocused=document.activeElement===note;if(!noteFocused){const saved=note.value;refresh();note.value=saved;}}},60000);
+  }
+  function overview(parent){
+    const state=timeline(),card=add('div',parent,'','fa-card');card.id='fa-overview';
+    card.style.cssText='margin:10px 0;background:#edf5f6;color:#193344;border:1px solid #d3e4e8';
+    add('strong',card,'HAEAHN · AI Field Assistant');
+    add('div',card,'NOW · '+(state.current?summary(state.current)+' (진행 여부 확인 필요)':'현재 시작된 당일 일정 없음'));
+    add('div',card,'NEXT · '+summary(state.next));
+    button(card,'이동·도착 안내 / AI에게 물어보기',open);
+    add('div',card,FLIGHT_NOTE,'fa-muted');
+  }
+  function open(){fillSelect();refresh();document.getElementById('fa-panel').showModal();}
+  patchSafety();
+  document.addEventListener('DOMContentLoaded',init);
+  return {schedules,timeline,answer,normalize,dateOf,stamp,checks,people,KDCEA,FLIGHT_NOTE,overview};
+})();
 
 // ── PWA Service Worker — 웹 배포 시 오프라인 캐싱 ──────────────
 if ('serviceWorker' in navigator &&
