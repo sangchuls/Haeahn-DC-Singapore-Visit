@@ -4,7 +4,20 @@
 
 ## AI Field Assistant
 
-하단 **AI에게 물어보기**에서 오늘/내일 일정, 다음 목적지, 출발 계획, 좌석을 질문합니다. 주요 질문은 기존 일정에서 오프라인 조회하며, 그 밖의 자연어 질문은 기존 `/api/claude` 서버 함수를 사용합니다. 추가 API 키나 빌드 과정은 없습니다.
+하단 **AI에게 물어보기**에서 오늘/내일 일정, 다음 목적지, 출발 계획, 좌석을 질문합니다. 주요 질문과 “10월 2일 일정” 같은 날짜 조회는 키 없이 오프라인 처리합니다. 그 밖의 자연어 질문은 사용자가 선택한 Gemini·Claude·GPT 개인 API 키로 서버 중계를 통해 답변합니다. 빌드는 필요 없습니다.
+
+### 개인 API 키 설정
+
+1. 채팅창 **AI 설정**에서 개인 설정과 제공사를 선택합니다.
+2. 발급 링크에서 본인 계정으로 키를 만듭니다: [Gemini](https://aistudio.google.com/apikey), [Claude](https://platform.claude.com/settings/keys), [OpenAI](https://platform.openai.com/api-keys).
+3. API 키와 저장 비밀번호(8자 이상)를 입력하고 **저장·사용**을 누릅니다.
+4. **연결 확인**은 짧은 실제 API 요청이며 본인 API 사용량으로 집계됩니다. 새로고침 후에는 비밀번호로 **잠금 해제**합니다.
+
+개인·제공사별 키는 이 브라우저의 localStorage에 AES-GCM으로 암호화해 저장하며, 비밀번호는 저장하거나 서버로 보내지 않습니다. PBKDF2-SHA256 310,000회, 무작위 salt/IV, 개인·제공사 식별자를 인증 데이터로 사용합니다. 복호화된 키는 페이지 메모리에만 유지하고 개인/제공사 변경·잠금·페이지 종료 시 해제합니다. 프로필은 본인 인증 계정이 아닌 로컬 저장 구분이며 기기 간 동기화되지 않습니다. 저장 비밀번호를 잊으면 키를 다시 등록합니다.
+
+AI 호출 시 키는 HTTPS `x-ai-key` 헤더로 사이트 서버에 전달되고, 서버가 고정된 제공사 API에 중계합니다. 서버는 키를 저장/로그/응답에 남기지 않으며, 비밀번호는 전송되지 않습니다. 질문·최근 대화·출장 자료는 선택한 제공사에 전달됩니다. API 요금·한도는 본인 제공사 계정 기준입니다. OpenAI 요청은 `store:false`로 설정합니다. 브라우저/사이트 스크립트가 침해된 경우까지 암호화 저장이 보호하는 것은 아닙니다.
+
+연동 모델: Gemini `gemini-2.5-flash`, Claude `claude-sonnet-4-6`, GPT `gpt-4.1-mini`. 계정별 권한·모델 사용 가능 여부는 연결 확인으로 점검합니다. 참고한 공식 문서: [OpenAI Responses](https://developers.openai.com/api/docs/guides/text), [Gemini generateContent](https://ai.google.dev/api/generate-content), [Claude Messages](https://platform.claude.com/docs/en/api/messages/create).
 
 버튼을 누르면 말풍선 채팅창이 열립니다. **음성 대화**를 누르면 질문을 듣고 답변을 읽은 뒤 다음 질문을 기다립니다. **대화 중지** 또는 창 닫기로 마이크와 읽기를 종료합니다. 일정 선택·출장자·현장 메모는 채팅창 상단의 접힌 메뉴에 있습니다. 최근 대화는 페이지를 열어 둔 동안 유지되며, 자연어 후속 질문에는 최근 8개 메시지를 서버로 전달합니다.
 
@@ -27,8 +40,7 @@ git remote add origin https://github.com/<계정>/sg-guide.git
 git push -u origin main
 ```
 
-Vercel → Add New Project → 저장소 선택 → **Environment Variables**에
-`ANTHROPIC_API_KEY` 추가 → Deploy.
+Vercel의 기존 프로젝트와 GitHub main 자동 배포를 유지합니다. 개인 키 채팅에는 별도 서버 키가 필요하지 않습니다. 기존 **AI 당일 시나리오**의 공용 실시간 생성에만 **Environment Variables**의 `ANTHROPIC_API_KEY`를 사용하며, 미설정 시 내장 시나리오로 전환합니다.
 
 > 프레임워크 설정은 **Other**(정적)로 두면 됩니다. `npm install`도 빌드도 없습니다.
 > `api/claude.js`는 Vercel이 자동으로 서버리스 함수로 인식합니다.

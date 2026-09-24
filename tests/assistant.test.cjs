@@ -41,6 +41,8 @@ test('Singapore date boundary, trip boundaries and Korean flight timezone',()=>{
 test('today never silently becomes selected preview date',()=>{
   assert.match(fa.answer('오늘 일정 알려줘',new Date('2026-09-24T00:00:00Z')),/등록된 출장 일정이 없습니다/);
   assert.match(fa.answer('내일 일정 알려줘',new Date('2026-09-28T05:00:00Z')),/2026-09-29/);
+  for(const q of ['10월 2일 일정 알려줘','10/2 일정','2026-10-02 일정'])assert.match(fa.answer(q,new Date()),/SQ600/);
+  assert.match(fa.answer('2027-10-02 일정',new Date()),/등록된 출장 일정이 없습니다/);
 });
 test('flight summary uses verified tickets and leaves blank terminal unknown',()=>{
   const a=fa.answer('임상철 비행기 좌석',new Date());

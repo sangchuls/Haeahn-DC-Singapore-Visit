@@ -3689,6 +3689,49 @@ function openGrab(trKey){
 }
 
 // ── Field Assistant: existing DAYS/TR remain the source, no framework required ──
+const PersonalAI = (() => {
+  const providers={gemini:{name:'Gemini',model:'gemini-2.5-flash',url:'https://aistudio.google.com/apikey'},claude:{name:'Claude',model:'claude-sonnet-4-6',url:'https://platform.claude.com/settings/keys'},openai:{name:'GPT (OpenAI)',model:'gpt-4.1-mini',url:'https://platform.openai.com/api-keys'}};
+  const profiles=['personal','김상범','정재수','임상철','류환재'];
+  let selection={profile:'personal',provider:'gemini'},active=null,revision=0;
+  try{const saved=JSON.parse(localStorage.getItem('sg_ai_selection_v1'));if(saved&&profiles.includes(saved.profile)&&Object.hasOwn(providers,saved.provider))selection=saved;}catch(e){}
+  const slot=()=> 'sg_ai_vault_v1_'+encodeURIComponent(selection.profile)+'_'+selection.provider;
+  const b64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes)));
+  const bytes=str=>Uint8Array.from(atob(str),c=>c.charCodeAt(0));
+  function supported(){return !!window.crypto?.subtle;}
+  function lock(){active=null;revision++;}
+  function select(profile,provider){if(!profiles.includes(profile)||!Object.hasOwn(providers,provider))throw new Error('설정을 확인해주세요.');lock();selection={profile,provider};try{localStorage.setItem('sg_ai_selection_v1',JSON.stringify(selection));}catch(e){}}
+  function saved(){try{return !!localStorage.getItem(slot());}catch(e){return false;}}
+  async function derive(password,salt){
+    const material=await window.crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveKey']);
+    return window.crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  }
+  function validate(key,password){
+    if(!supported())throw new Error('이 브라우저에서는 암호화 저장을 사용할 수 없습니다. HTTPS 사이트에서 최신 브라우저로 접속해주세요.');
+    if(password.length<8||password.length>200)throw new Error('저장 비밀번호를 8자 이상 입력해주세요.');
+    if(key!==null&&(key.length<10||key.length>1024||/[^\x21-\x7e]/.test(key)))throw new Error('API 키를 공백 없이 확인해주세요.');
+  }
+  async function save(key,password){
+    key=key.trim();validate(key,password);const current=revision,id=slot();
+    const salt=window.crypto.getRandomValues(new Uint8Array(16)),iv=window.crypto.getRandomValues(new Uint8Array(12));
+    const cryptoKey=await derive(password,salt);
+    const ciphertext=await window.crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:new TextEncoder().encode(id)},cryptoKey,new TextEncoder().encode(key));
+    if(current!==revision)throw new Error('사용자 또는 제공사가 바뀌었습니다. 다시 저장해주세요.');
+    try{localStorage.setItem(id,JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),data:b64(ciphertext)}));}catch(e){throw new Error('저장 공간을 사용할 수 없습니다. 브라우저의 저장 설정을 확인해주세요.');}
+    active={...selection,key};
+  }
+  async function unlock(password){
+    validate(null,password);const current=revision,id=slot();let record;
+    try{const raw=localStorage.getItem(id);if(!raw||raw.length>4000)throw new Error();record=JSON.parse(raw);}catch(e){throw new Error('저장된 키가 없습니다. 키를 먼저 저장해주세요.');}
+    try{
+      if(record.v!==1)throw new Error();const key=await derive(password,bytes(record.salt));
+      const data=await window.crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(record.iv),additionalData:new TextEncoder().encode(id)},key,bytes(record.data));
+      if(current!==revision)throw new Error();active={...selection,key:new TextDecoder().decode(data)};
+    }catch(e){throw new Error('비밀번호가 다르거나 저장된 키를 열 수 없습니다. 비밀번호를 확인해주세요.');}
+  }
+  function remove(){lock();try{localStorage.removeItem(slot());}catch(e){throw new Error('저장된 키를 삭제하지 못했습니다. 브라우저 저장 설정을 확인해주세요.');}}
+  window.addEventListener?.('pagehide',lock);
+  return {providers,profiles,select,saved,save,unlock,remove,lock,supported,current:()=>({...selection}),connection:()=>active?{...active}:null};
+})();
 const FieldAssistant = (() => {
   const KDCEA = '공문에는 조호바루로 기재되어 있으며, 현재 지도 위치는 데이터센터 등록주소를 기준으로 표시한 참고 위치입니다. 9월 29일 14:00 일정은 전용버스 단체 이동입니다. 정확한 목적지와 집결지는 참관단 확정 안내 확인이 필요합니다.';
   const FLIGHT_NOTE = 'e-Ticket PDF 4명분 대조 완료 (2026-09-24). 출국 SQ607 · 인천 T1, 귀국 SQ600 · 창이 T2 → 인천 T1. 출국편의 싱가포르 도착 터미널은 항공권 공란으로 확인이 필요합니다. 좌석·터미널·운항 시각은 당일 변경될 수 있습니다.';
@@ -3753,6 +3796,12 @@ const FieldAssistant = (() => {
   function target(){return schedules().find(s=>s.id===selectedId)||timeline().current||timeline().next;}
   function answer(q,now=new Date(),selected=null){
     const t=timeline(now),list=t.list;
+    const explicitDate=q.match(/(?:(20\d{2})\s*[년.\/-]\s*)?(\d{1,2})\s*(?:월\s*|[\/.\-])\s*(\d{1,2})\s*일?/);
+    if(explicitDate&&/일정|스케줄|계획|뭐|알려/.test(q)){
+      const date=(explicitDate[1]||'2026')+'-'+explicitDate[2].padStart(2,'0')+'-'+explicitDate[3].padStart(2,'0');
+      const day=list.filter(v=>v.WHEN.date===date);lastTarget=day[0]||null;
+      return day.length?date+' 일정이에요.\n'+day.map(summary).join('\n')+(date==='2026-09-29'?'\n\n'+KDCEA:''):'해당 날짜에는 등록된 출장 일정이 없습니다. 출장 기간은 9월 27일~10월 2일입니다.';
+    }
     let s=selected||t.current||t.next;
     if(/다음/.test(q))s=t.next;
     const named=list.find(v=>/Schneider|슈나이더/i.test(q)?/Schneider/.test(v.title):/Brightray|브라이트레이/i.test(q)?/Brightray/.test(v.title):false);
@@ -3826,6 +3875,55 @@ const FieldAssistant = (() => {
   function button(parent,text,fn){const el=add('button',parent,text);el.type='button';el.onclick=fn;return el;}
   const messages=[];
   let voiceMode=false,speaking=false,speechToken=0,activeRequest=null;
+  const AI_ERRORS={KEY_REQUIRED:'AI 설정에서 개인 API 키를 저장하고 잠금을 풀어주세요.',INVALID_KEY:'API 키가 유효하지 않습니다. AI 설정에서 발급한 키를 확인해주세요.',PERMISSION_DENIED:'이 키에 API 사용 권한이 없습니다. 제공사 프로젝트·권한을 확인해주세요.',REQUEST_REJECTED:'API 요청이 거절됐습니다. 키 종류와 제공사 프로젝트 설정을 확인해주세요.',QUOTA_EXCEEDED:'API 사용량 한도 또는 잔액을 확인해주세요. 잠시 후 다시 시도할 수도 있습니다.',MODEL_UNAVAILABLE:'이 계정에서 모델을 사용할 수 없습니다. 다른 AI를 선택하거나 제공사 모델 권한을 확인해주세요.',TIMEOUT:'AI 응답이 늦어지고 있습니다. 잠시 후 다시 시도해주세요.',UPSTREAM_ERROR:'AI 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.'};
+  function syncAISettings(note){
+    const selected=PersonalAI.current(),ready=PersonalAI.connection(),provider=PersonalAI.providers[selected.provider];
+    const saved=PersonalAI.saved();
+    document.getElementById('fa-ai-summary').textContent=provider.name+' · '+(ready?'개인 키 사용 중':saved?'저장된 키 잠김':'API 키 설정');
+    document.getElementById('fa-ai-state').textContent=note||(ready?'키 잠금이 풀렸습니다. 연결 확인으로 실제 사용 가능 여부를 확인하세요.':saved?'저장 비밀번호를 입력하고 잠금 해제를 누르세요.':'아래 발급 페이지에서 키를 만든 뒤 저장해주세요.');
+    const link=document.getElementById('fa-key-link');link.href=provider.url;link.textContent=provider.name+' API 키 발급 ↗';
+    document.getElementById('fa-ai-model').textContent='사용 모델: '+provider.model;
+  }
+  function openAISettings(){document.getElementById('fa-ai-settings').open=true;document.getElementById('fa-options').open=false;}
+  function initAISettings(panel){
+    const settings=add('details',panel);settings.id='fa-ai-settings';add('summary',settings).id='fa-ai-summary';
+    const fields=add('div',settings,'','fa-ai-fields');
+    const labeled=(title,id,tag='input')=>{const label=add('label',fields,title);label.htmlFor=id;const el=add(tag,fields);el.id=id;return el;};
+    const profile=labeled('개인 설정','fa-ai-profile','select');PersonalAI.profiles.forEach(p=>add('option',profile,p==='personal'?'내 개인 설정':p).value=p);
+    const provider=labeled('사용할 AI','fa-ai-provider','select');Object.entries(PersonalAI.providers).forEach(([id,p])=>add('option',provider,p.name).value=id);
+    profile.value=PersonalAI.current().profile;provider.value=PersonalAI.current().provider;
+    const link=add('a',fields);link.id='fa-key-link';link.target='_blank';link.rel='noopener noreferrer';
+    add('div',fields,'','fa-muted').id='fa-ai-model';
+    const key=labeled('API 키 (처음 저장하거나 변경할 때)','fa-api-key');key.type='password';key.autocomplete='off';key.maxLength=1024;key.spellcheck=false;key.placeholder='발급받은 API 키 붙여넣기';
+    const password=labeled('저장 비밀번호 (8자 이상)','fa-key-password');password.type='password';password.autocomplete='off';password.maxLength=200;password.placeholder='키 저장·잠금 해제에 사용할 비밀번호';
+    const state=add('div',fields,'','fa-muted');state.id='fa-ai-state';state.setAttribute('role','status');
+    const row=add('div',fields,'','fa-row');let working=false;
+    async function action(fn,success){
+      if(working)return;working=true;state.textContent='처리 중…';
+      try{await fn();syncAISettings(success);}catch(e){syncAISettings(e.message);}finally{key.value='';password.value='';working=false;}
+    }
+    button(row,'저장·사용',()=>action(()=>PersonalAI.save(key.value,password.value),'이 브라우저에 암호화 저장했습니다. 연결 확인을 눌러주세요.'));
+    button(row,'잠금 해제',()=>action(()=>PersonalAI.unlock(password.value),'잠금을 풀었습니다. 이 개인 키로 AI를 사용할 수 있어요.'));
+    button(row,'잠그기',()=>{stopVoice();const pending=activeRequest;activeRequest=null;pending?.abort();PersonalAI.lock();key.value='';password.value='';syncAISettings();});
+    button(row,'키 삭제',()=>action(()=>PersonalAI.remove(),'선택한 개인·제공사의 저장된 키를 삭제했습니다.'));
+    button(fields,'연결 확인 (소량의 API 사용)',()=>action(async()=>{
+      const c=PersonalAI.connection();if(!c)throw new Error(AI_ERRORS.KEY_REQUIRED);
+      const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-ai-key':c.key},body:JSON.stringify({mode:'assistant',provider:c.provider,checkConnection:true,context:'connection check',question:'연결 확인',history:[]}),signal:AbortSignal.timeout(22000)});
+      const data=await response.json();if(!response.ok)throw new Error(AI_ERRORS[data.code]||AI_ERRORS.UPSTREAM_ERROR);
+      if(typeof data.answer!=='string'||!data.answer.trim())throw new Error(AI_ERRORS.UPSTREAM_ERROR);
+    },'연결 성공! 선택한 개인 키로 AI 답변을 받을 수 있습니다.'));
+    add('div',fields,'키는 이 브라우저에 비밀번호로 암호화해 저장됩니다. 비밀번호는 저장·전송하지 않습니다. 새로고침 후 잠금을 다시 풀어주세요. 다른 기기에는 따로 등록해야 합니다.','fa-muted');
+    add('div',fields,'질문할 때 키와 출장 대화가 이 사이트 서버를 거쳐 선택한 AI 제공사에 전달됩니다. 서버는 키를 저장하지 않습니다. API 사용료·한도는 본인 계정 기준이며, 개인 비밀번호를 잊으면 키를 다시 등록해야 합니다.','fa-muted');
+    const changed=()=>{
+      const previous=PersonalAI.current().profile;stopVoice();const pending=activeRequest;activeRequest=null;pending?.abort();PersonalAI.select(profile.value,provider.value);key.value='';password.value='';
+      if(previous!==profile.value){messages.length=0;document.getElementById('fa-messages').replaceChildren();lastTarget=null;bubble('assistant','개인 설정을 바꿨어요. 저장된 키의 잠금을 풀어주세요.',false);const person=document.getElementById('fa-person');person.value=profile.value==='personal'?'':profile.value;}
+      syncAISettings();
+    };
+    profile.onchange=changed;provider.onchange=changed;
+    settings.ontoggle=()=>{if(settings.open)document.getElementById('fa-options').open=false;};
+    window.addEventListener?.('storage',e=>{if(e.key?.startsWith('sg_ai_vault_v1_')){PersonalAI.lock();syncAISettings();}});
+    if(!PersonalAI.supported())state.textContent='암호화 저장을 지원하는 HTTPS 브라우저에서 접속해주세요.';
+  }
   function status(text){document.getElementById('fa-status').textContent=text;}
   function scrollChat(){const thread=document.getElementById('fa-messages');thread.scrollTop=thread.scrollHeight;}
   function bubble(role,text,remember=true){
@@ -3891,15 +3989,17 @@ const FieldAssistant = (() => {
       const s=lastTarget||target(),local=answer(q,new Date(),s);
       if(local){result(local);return;}
       if(!navigator.onLine||!/^https?:$/.test(location.protocol)){result('지금은 오프라인이에요. “다음 일정 어디야”, “누구 만나”, “여기서 뭘 봐야 해”처럼 물어보시면 저장된 일정에서 찾아드릴게요.');return;}
+      const connection=PersonalAI.connection();
+      if(!connection){stopVoice();result(AI_ERRORS.KEY_REQUIRED+' 저장된 일정 질문은 키 없이도 이용할 수 있어요.');openAISettings();return;}
       const controller=new AbortController();activeRequest=controller;
-      const timer=setTimeout(()=>controller.abort(),12000);
+      const timer=setTimeout(()=>controller.abort(),22000);
       try{
-        const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({mode:'assistant',question:q,history:messages.slice(-9,-1).map(m=>({role:m.role,content:m.content.slice(0,2000)})),context:JSON.stringify({now:new Date().toISOString(),flights:AIR_TRIP,selected:s,selected_day:s?listFor(s.WHEN.date):[],constraints:[KDCEA,FLIGHT_NOTE]})})});
-        if(!response.ok)throw new Error('unavailable');const data=await response.json();
+        const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-ai-key':connection.key},signal:controller.signal,body:JSON.stringify({mode:'assistant',provider:connection.provider,question:q,history:messages.slice(-9,-1).map(m=>({role:m.role,content:m.content.slice(0,2000)})),context:JSON.stringify({now:new Date().toISOString(),flights:AIR_TRIP,selected:s,selected_day:s?listFor(s.WHEN.date):[],constraints:[KDCEA,FLIGHT_NOTE]})})});
+        const data=await response.json();if(!response.ok){const error=new Error();error.code=data.code;throw error;}
         if(controller.signal.aborted)return;
         if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('empty');
         result(data.answer+(s?.WHERE.map_pin_usage==='reference_only'?'\n\n'+s.metadata.note:''));
-      }catch(e){if(activeRequest===controller&&document.getElementById('fa-panel').open)result('AI 연결이 원활하지 않습니다. 잠시 후 다시 말씀해주세요. “다음 일정 어디야”처럼 저장된 일정 질문은 계속 이용할 수 있어요.');}
+      }catch(e){if(activeRequest===controller&&document.getElementById('fa-panel').open){stopVoice();result(AI_ERRORS[e.code]||(controller.signal.aborted?AI_ERRORS.TIMEOUT:AI_ERRORS.UPSTREAM_ERROR));}}
       finally{clearTimeout(timer);if(activeRequest===controller)activeRequest=null;}
     }finally{busy=false;document.getElementById('fa-send').disabled=false;startListening();}
   }
@@ -3916,15 +4016,17 @@ const FieldAssistant = (() => {
       #fa-panel header{background:#173d53;color:#fff;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}#fa-panel header small{display:block;color:#c8dfdf;font-size:12px;margin-top:3px}#fa-panel header button{background:transparent;color:#fff;border:1px solid #ffffff50}
       #fa-panel button,#fa-panel input,#fa-panel select,#fa-panel textarea{font:inherit;min-height:44px;border-radius:12px;border:1px solid #d3dfe5;padding:10px;max-width:100%;box-sizing:border-box}#fa-panel button{cursor:pointer;background:white;color:#173d53}#fa-panel button:disabled{opacity:.5;cursor:default}#fa-panel button:focus-visible,#fa-panel input:focus-visible{outline:3px solid #53aaa3;outline-offset:2px}#fa-panel select,#fa-panel textarea{width:100%;background:white}#fa-panel textarea{min-height:90px}#fa-panel input[type=checkbox]{min-height:18px;vertical-align:middle}
       #fa-options{padding:8px 18px;background:white;border-bottom:1px solid #e0e8ed;flex-shrink:0;max-height:38%;overflow:auto}#fa-options summary{cursor:pointer;color:#536b78;padding:5px 0}#fa-tools{display:grid;gap:10px;padding:10px 0}.fa-row{display:flex;gap:8px;flex-wrap:wrap}.fa-muted{font-size:12px;color:#627785}#fa-context{white-space:pre-wrap;font-size:12px;color:#627785}
+      #fa-ai-settings{padding:8px 18px;background:#fff;border-bottom:1px solid #e0e8ed;flex-shrink:0;max-height:55%;overflow:auto}#fa-ai-settings summary{cursor:pointer;padding:5px 0;color:#176858}.fa-ai-fields{display:grid;gap:9px;padding:8px 0}.fa-ai-fields input{width:100%}.fa-ai-fields label{font-size:12px;color:#536b78}.fa-ai-fields a{color:#176858}.fa-header-actions{display:flex;gap:6px}
       #fa-messages{flex:1;min-height:0;overflow:auto;padding:22px 18px;overscroll-behavior:contain;display:flex;flex-direction:column;gap:18px}.fa-message{display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0}.fa-user{align-items:flex-end}.fa-speaker{font-size:11px;color:#6f818d;margin:0 5px 5px}.fa-bubble{max-width:90%;padding:13px 16px;border-radius:4px 18px 18px 18px;background:#fff;border:1px solid #e4ebef;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}.fa-user .fa-bubble{background:#173d53;border-color:#173d53;color:#fff;border-radius:18px 4px 18px 18px}
       #fa-compose{background:white;border-top:1px solid #e0e8ed;padding:12px 16px max(14px,env(safe-area-inset-bottom));flex-shrink:0}#fa-status{font-size:12px;color:#607b85;min-height:20px;margin-bottom:8px}#fa-input-row{display:flex;gap:8px}#fa-question{flex:1;min-width:0;background:#f5f8fa;border:0!important}#fa-send{background:#173d53!important;color:white!important;padding:10px 16px!important}#fa-voice-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}#fa-mic{border:0!important;background:#e9f5f2!important;color:#176858!important}#fa-mic[aria-pressed=true]{background:#ffeae5!important;color:#a53724!important}#fa-voice-row label{font-size:12px;color:#627785}.fa-quick{display:flex;flex-wrap:wrap;gap:7px;padding:0 18px 12px}.fa-quick button{border-radius:24px!important;font-size:12px!important;min-height:36px!important}#ci{padding-bottom:85px!important}
       @media(max-width:520px){#fa-panel{width:100%;max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;margin:0}#fa-panel header{padding-top:max(16px,env(safe-area-inset-top))}}
     `;
     const launch=button(document.body,'AI에게 물어보기',open);launch.id='fa-launch';launch.setAttribute('aria-haspopup','dialog');
     const panel=add('dialog',document.body);panel.id='fa-panel';panel.setAttribute('aria-labelledby','fa-title');
-    const header=add('header',panel),heading=add('div',header);add('strong',heading,'출장 도우미').id='fa-title';add('small',heading,'HAEAHN · Singapore DC Visit');button(header,'닫기',()=>panel.close());
+    const header=add('header',panel),heading=add('div',header);add('strong',heading,'출장 도우미').id='fa-title';add('small',heading,'HAEAHN · Singapore DC Visit');const headerButtons=add('div',header,'','fa-header-actions');button(headerButtons,'AI 설정',openAISettings);button(headerButtons,'닫기',()=>panel.close());
     panel.addEventListener('close',()=>{stopVoice();const pending=activeRequest;activeRequest=null;pending?.abort();launch.focus();});
-    const options=add('details',panel);options.id='fa-options';add('summary',options,'일정 선택 · 출장자 · 현장 메모');
+    initAISettings(panel);
+    const options=add('details',panel);options.id='fa-options';add('summary',options,'일정 선택 · 출장자 · 현장 메모');options.ontoggle=()=>{if(options.open)document.getElementById('fa-ai-settings').open=false;};
     const tools=add('div',options);tools.id='fa-tools';
     const label=add('label',tools,'질문할 일정');label.htmlFor='fa-schedule';
     const sel=add('select',tools);sel.id='fa-schedule';sel.onchange=()=>{selectedId=sel.value||null;lastTarget=null;refresh();};
@@ -3949,7 +4051,7 @@ const FieldAssistant = (() => {
     const mic=button(voiceRow,'🎙 음성 대화',()=>{if(voiceMode||speaking){stopVoice();return;}voiceMode=true;document.getElementById('fa-read').checked='speechSynthesis' in window;mic.textContent='■ 대화 중지';mic.setAttribute('aria-pressed','true');startListening();});mic.id='fa-mic';mic.setAttribute('aria-pressed','false');
     if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){mic.disabled=true;mic.textContent='음성 입력 미지원';}
     const rl=add('label',voiceRow);const read=add('input',rl);read.type='checkbox';read.id='fa-read';rl.appendChild(document.createTextNode(' 답변 듣기'));read.disabled=!('speechSynthesis' in window);read.onchange=()=>{if(!read.checked){speechToken++;speaking=false;window.speechSynthesis?.cancel();startListening();}};
-    fillSelect();refresh();
+    fillSelect();refresh();syncAISettings();
     const resize=()=>{if(panel.open&&window.visualViewport){panel.style.height=Math.min(740,window.visualViewport.height)+'px';panel.style.top=window.visualViewport.offsetTop+'px';}};
     window.visualViewport?.addEventListener('resize',resize);window.visualViewport?.addEventListener('scroll',resize);
   }
