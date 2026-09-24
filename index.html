@@ -3690,47 +3690,25 @@ function openGrab(trKey){
 
 // ── Field Assistant: existing DAYS/TR remain the source, no framework required ──
 const PersonalAI = (() => {
-  const providers={gemini:{name:'Gemini',model:'gemini-2.5-flash',url:'https://aistudio.google.com/apikey'},claude:{name:'Claude',model:'claude-sonnet-4-6',url:'https://platform.claude.com/settings/keys'},openai:{name:'GPT (OpenAI)',model:'gpt-4.1-mini',url:'https://platform.openai.com/api-keys'}};
-  const profiles=['personal','김상범','정재수','임상철','류환재'];
-  let selection={profile:'personal',provider:'gemini'},active=null,revision=0;
-  try{const saved=JSON.parse(localStorage.getItem('sg_ai_selection_v1'));if(saved&&profiles.includes(saved.profile)&&Object.hasOwn(providers,saved.provider))selection=saved;}catch(e){}
-  const slot=()=> 'sg_ai_vault_v1_'+encodeURIComponent(selection.profile)+'_'+selection.provider;
-  const b64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes)));
-  const bytes=str=>Uint8Array.from(atob(str),c=>c.charCodeAt(0));
-  function supported(){return !!window.crypto?.subtle;}
-  function lock(){active=null;revision++;}
-  function select(profile,provider){if(!profiles.includes(profile)||!Object.hasOwn(providers,provider))throw new Error('설정을 확인해주세요.');lock();selection={profile,provider};try{localStorage.setItem('sg_ai_selection_v1',JSON.stringify(selection));}catch(e){}}
-  function saved(){try{return !!localStorage.getItem(slot());}catch(e){return false;}}
-  async function derive(password,salt){
-    const material=await window.crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveKey']);
-    return window.crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  const providers={gemini:{name:'Gemini',url:'https://aistudio.google.com/apikey'},claude:{name:'Claude',url:'https://platform.claude.com/settings/keys'},openai:{name:'GPT',url:'https://platform.openai.com/api-keys'}};
+  const STORE='sg_ai_simple_v1';
+  let provider='gemini';
+  function read(){try{const data=JSON.parse(localStorage.getItem(STORE));return data&&typeof data==='object'?data:{};}catch(e){return {};}}
+  const initial=read();if(Object.hasOwn(providers,initial.provider))provider=initial.provider;
+  function select(value){if(!Object.hasOwn(providers,value))throw new Error('AI를 선택해주세요.');provider=value;}
+  function connection(){const data=read(),key=data.keys?.[provider];return typeof key==='string'&&key?{provider,key}:null;}
+  function save(value){
+    const key=value.trim();
+    if(key.length<10||key.length>1024||/[^\x21-\x7e]/.test(key))throw new Error('발급받은 API 키를 확인해주세요.');
+    const data=read(),keys={};
+    Object.keys(providers).forEach(p=>{if(typeof data.keys?.[p]==='string')keys[p]=data.keys[p];});keys[provider]=key;
+    try{localStorage.setItem(STORE,JSON.stringify({provider,keys}));}catch(e){throw new Error('브라우저에 저장하지 못했습니다. 저장 권한을 확인해주세요.');}
   }
-  function validate(key,password){
-    if(!supported())throw new Error('이 브라우저에서는 암호화 저장을 사용할 수 없습니다. HTTPS 사이트에서 최신 브라우저로 접속해주세요.');
-    if(password.length<8||password.length>200)throw new Error('저장 비밀번호를 8자 이상 입력해주세요.');
-    if(key!==null&&(key.length<10||key.length>1024||/[^\x21-\x7e]/.test(key)))throw new Error('API 키를 공백 없이 확인해주세요.');
+  function remove(){
+    const data=read();if(data.keys)delete data.keys[provider];
+    try{localStorage.setItem(STORE,JSON.stringify(data));}catch(e){throw new Error('키를 삭제하지 못했습니다.');}
   }
-  async function save(key,password){
-    key=key.trim();validate(key,password);const current=revision,id=slot();
-    const salt=window.crypto.getRandomValues(new Uint8Array(16)),iv=window.crypto.getRandomValues(new Uint8Array(12));
-    const cryptoKey=await derive(password,salt);
-    const ciphertext=await window.crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:new TextEncoder().encode(id)},cryptoKey,new TextEncoder().encode(key));
-    if(current!==revision)throw new Error('사용자 또는 제공사가 바뀌었습니다. 다시 저장해주세요.');
-    try{localStorage.setItem(id,JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),data:b64(ciphertext)}));}catch(e){throw new Error('저장 공간을 사용할 수 없습니다. 브라우저의 저장 설정을 확인해주세요.');}
-    active={...selection,key};
-  }
-  async function unlock(password){
-    validate(null,password);const current=revision,id=slot();let record;
-    try{const raw=localStorage.getItem(id);if(!raw||raw.length>4000)throw new Error();record=JSON.parse(raw);}catch(e){throw new Error('저장된 키가 없습니다. 키를 먼저 저장해주세요.');}
-    try{
-      if(record.v!==1)throw new Error();const key=await derive(password,bytes(record.salt));
-      const data=await window.crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(record.iv),additionalData:new TextEncoder().encode(id)},key,bytes(record.data));
-      if(current!==revision)throw new Error();active={...selection,key:new TextDecoder().decode(data)};
-    }catch(e){throw new Error('비밀번호가 다르거나 저장된 키를 열 수 없습니다. 비밀번호를 확인해주세요.');}
-  }
-  function remove(){lock();try{localStorage.removeItem(slot());}catch(e){throw new Error('저장된 키를 삭제하지 못했습니다. 브라우저 저장 설정을 확인해주세요.');}}
-  window.addEventListener?.('pagehide',lock);
-  return {providers,profiles,select,saved,save,unlock,remove,lock,supported,current:()=>({...selection}),connection:()=>active?{...active}:null};
+  return {providers,select,save,remove,current:()=>({provider}),connection};
 })();
 const FieldAssistant = (() => {
   const KDCEA = '공문에는 조호바루로 기재되어 있으며, 현재 지도 위치는 데이터센터 등록주소를 기준으로 표시한 참고 위치입니다. 9월 29일 14:00 일정은 전용버스 단체 이동입니다. 정확한 목적지와 집결지는 참관단 확정 안내 확인이 필요합니다.';
@@ -3875,54 +3853,35 @@ const FieldAssistant = (() => {
   function button(parent,text,fn){const el=add('button',parent,text);el.type='button';el.onclick=fn;return el;}
   const messages=[];
   let voiceMode=false,speaking=false,speechToken=0,activeRequest=null;
-  const AI_ERRORS={KEY_REQUIRED:'AI 설정에서 개인 API 키를 저장하고 잠금을 풀어주세요.',INVALID_KEY:'API 키가 유효하지 않습니다. AI 설정에서 발급한 키를 확인해주세요.',PERMISSION_DENIED:'이 키에 API 사용 권한이 없습니다. 제공사 프로젝트·권한을 확인해주세요.',REQUEST_REJECTED:'API 요청이 거절됐습니다. 키 종류와 제공사 프로젝트 설정을 확인해주세요.',QUOTA_EXCEEDED:'API 사용량 한도 또는 잔액을 확인해주세요. 잠시 후 다시 시도할 수도 있습니다.',MODEL_UNAVAILABLE:'이 계정에서 모델을 사용할 수 없습니다. 다른 AI를 선택하거나 제공사 모델 권한을 확인해주세요.',TIMEOUT:'AI 응답이 늦어지고 있습니다. 잠시 후 다시 시도해주세요.',UPSTREAM_ERROR:'AI 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.'};
+  const AI_ERRORS={KEY_REQUIRED:'API 키를 한 번 입력하고 저장해주세요.',INVALID_KEY:'API 키가 유효하지 않습니다. AI 설정에서 발급한 키를 확인해주세요.',PERMISSION_DENIED:'이 키에 API 사용 권한이 없습니다. 제공사 프로젝트·권한을 확인해주세요.',REQUEST_REJECTED:'API 요청이 거절됐습니다. 키 종류와 제공사 프로젝트 설정을 확인해주세요.',QUOTA_EXCEEDED:'API 사용량 한도 또는 잔액을 확인해주세요. 잠시 후 다시 시도할 수도 있습니다.',MODEL_UNAVAILABLE:'이 계정에서 모델을 사용할 수 없습니다. 다른 AI를 선택하거나 제공사 모델 권한을 확인해주세요.',TIMEOUT:'AI 응답이 늦어지고 있습니다. 잠시 후 다시 시도해주세요.',UPSTREAM_ERROR:'AI 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.'};
+  let pendingQuestion=null;
   function syncAISettings(note){
     const selected=PersonalAI.current(),ready=PersonalAI.connection(),provider=PersonalAI.providers[selected.provider];
-    const saved=PersonalAI.saved();
-    document.getElementById('fa-ai-summary').textContent=provider.name+' · '+(ready?'개인 키 사용 중':saved?'저장된 키 잠김':'API 키 설정');
-    document.getElementById('fa-ai-state').textContent=note||(ready?'키 잠금이 풀렸습니다. 연결 확인으로 실제 사용 가능 여부를 확인하세요.':saved?'저장 비밀번호를 입력하고 잠금 해제를 누르세요.':'아래 발급 페이지에서 키를 만든 뒤 저장해주세요.');
-    const link=document.getElementById('fa-key-link');link.href=provider.url;link.textContent=provider.name+' API 키 발급 ↗';
-    document.getElementById('fa-ai-model').textContent='사용 모델: '+provider.model;
+    document.getElementById('fa-ai-summary').textContent=ready?provider.name+' · API 키 저장됨':'API 키 입력 · 저장';
+    document.getElementById('fa-ai-state').textContent=note||(ready?'저장되어 있어요. 바로 질문하세요.':'API 키를 한 번 저장하면 다음부터 바로 사용할 수 있어요.');
+    const link=document.getElementById('fa-key-link');link.href=provider.url;link.textContent=provider.name+' 키 발급 ↗';
+    document.getElementById('fa-api-key').placeholder=ready?'저장된 키 있음 · 변경할 때만 입력':'발급받은 API 키 붙여넣기';
   }
   function openAISettings(){document.getElementById('fa-ai-settings').open=true;document.getElementById('fa-options').open=false;}
   function initAISettings(panel){
     const settings=add('details',panel);settings.id='fa-ai-settings';add('summary',settings).id='fa-ai-summary';
     const fields=add('div',settings,'','fa-ai-fields');
-    const labeled=(title,id,tag='input')=>{const label=add('label',fields,title);label.htmlFor=id;const el=add(tag,fields);el.id=id;return el;};
-    const profile=labeled('개인 설정','fa-ai-profile','select');PersonalAI.profiles.forEach(p=>add('option',profile,p==='personal'?'내 개인 설정':p).value=p);
-    const provider=labeled('사용할 AI','fa-ai-provider','select');Object.entries(PersonalAI.providers).forEach(([id,p])=>add('option',provider,p.name).value=id);
-    profile.value=PersonalAI.current().profile;provider.value=PersonalAI.current().provider;
+    const label=add('label',fields,'사용할 AI');label.htmlFor='fa-ai-provider';
+    const provider=add('select',fields);provider.id='fa-ai-provider';Object.entries(PersonalAI.providers).forEach(([id,p])=>add('option',provider,p.name).value=id);provider.value=PersonalAI.current().provider;
+    const keyLabel=add('label',fields,'API 키');keyLabel.htmlFor='fa-api-key';
+    const key=add('input',fields);key.id='fa-api-key';key.type='password';key.autocomplete='off';key.maxLength=1024;key.spellcheck=false;
+    const row=add('div',fields,'','fa-row');
+    button(row,'저장',()=>{
+      try{PersonalAI.save(key.value);key.value='';syncAISettings();settings.open=false;const retry=pendingQuestion;pendingQuestion=null;if(retry)return ask(retry);}
+      catch(e){syncAISettings(e.message);}
+    });
+    button(row,'삭제',()=>{try{PersonalAI.remove();key.value='';syncAISettings('저장된 키를 삭제했습니다.');}catch(e){syncAISettings(e.message);}});
     const link=add('a',fields);link.id='fa-key-link';link.target='_blank';link.rel='noopener noreferrer';
-    add('div',fields,'','fa-muted').id='fa-ai-model';
-    const key=labeled('API 키 (처음 저장하거나 변경할 때)','fa-api-key');key.type='password';key.autocomplete='off';key.maxLength=1024;key.spellcheck=false;key.placeholder='발급받은 API 키 붙여넣기';
-    const password=labeled('저장 비밀번호 (8자 이상)','fa-key-password');password.type='password';password.autocomplete='off';password.maxLength=200;password.placeholder='키 저장·잠금 해제에 사용할 비밀번호';
     const state=add('div',fields,'','fa-muted');state.id='fa-ai-state';state.setAttribute('role','status');
-    const row=add('div',fields,'','fa-row');let working=false;
-    async function action(fn,success){
-      if(working)return;working=true;state.textContent='처리 중…';
-      try{await fn();syncAISettings(success);}catch(e){syncAISettings(e.message);}finally{key.value='';password.value='';working=false;}
-    }
-    button(row,'저장·사용',()=>action(()=>PersonalAI.save(key.value,password.value),'이 브라우저에 암호화 저장했습니다. 연결 확인을 눌러주세요.'));
-    button(row,'잠금 해제',()=>action(()=>PersonalAI.unlock(password.value),'잠금을 풀었습니다. 이 개인 키로 AI를 사용할 수 있어요.'));
-    button(row,'잠그기',()=>{stopVoice();const pending=activeRequest;activeRequest=null;pending?.abort();PersonalAI.lock();key.value='';password.value='';syncAISettings();});
-    button(row,'키 삭제',()=>action(()=>PersonalAI.remove(),'선택한 개인·제공사의 저장된 키를 삭제했습니다.'));
-    button(fields,'연결 확인 (소량의 API 사용)',()=>action(async()=>{
-      const c=PersonalAI.connection();if(!c)throw new Error(AI_ERRORS.KEY_REQUIRED);
-      const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-ai-key':c.key},body:JSON.stringify({mode:'assistant',provider:c.provider,checkConnection:true,context:'connection check',question:'연결 확인',history:[]}),signal:AbortSignal.timeout(22000)});
-      const data=await response.json();if(!response.ok)throw new Error(AI_ERRORS[data.code]||AI_ERRORS.UPSTREAM_ERROR);
-      if(typeof data.answer!=='string'||!data.answer.trim())throw new Error(AI_ERRORS.UPSTREAM_ERROR);
-    },'연결 성공! 선택한 개인 키로 AI 답변을 받을 수 있습니다.'));
-    add('div',fields,'키는 이 브라우저에 비밀번호로 암호화해 저장됩니다. 비밀번호는 저장·전송하지 않습니다. 새로고침 후 잠금을 다시 풀어주세요. 다른 기기에는 따로 등록해야 합니다.','fa-muted');
-    add('div',fields,'질문할 때 키와 출장 대화가 이 사이트 서버를 거쳐 선택한 AI 제공사에 전달됩니다. 서버는 키를 저장하지 않습니다. API 사용료·한도는 본인 계정 기준이며, 개인 비밀번호를 잊으면 키를 다시 등록해야 합니다.','fa-muted');
-    const changed=()=>{
-      const previous=PersonalAI.current().profile;stopVoice();const pending=activeRequest;activeRequest=null;pending?.abort();PersonalAI.select(profile.value,provider.value);key.value='';password.value='';
-      if(previous!==profile.value){messages.length=0;document.getElementById('fa-messages').replaceChildren();lastTarget=null;bubble('assistant','개인 설정을 바꿨어요. 저장된 키의 잠금을 풀어주세요.',false);const person=document.getElementById('fa-person');person.value=profile.value==='personal'?'':profile.value;}
-      syncAISettings();
-    };
-    profile.onchange=changed;provider.onchange=changed;
+    add('div',fields,'이 브라우저에 키를 저장합니다. 공용 기기에서는 사용 후 삭제해주세요. 질문에 사용하는 API 요금은 본인 계정에 적용됩니다.','fa-muted');
+    provider.onchange=()=>{stopVoice();const pending=activeRequest;activeRequest=null;pending?.abort();PersonalAI.select(provider.value);key.value='';syncAISettings();};
     settings.ontoggle=()=>{if(settings.open)document.getElementById('fa-options').open=false;};
-    window.addEventListener?.('storage',e=>{if(e.key?.startsWith('sg_ai_vault_v1_')){PersonalAI.lock();syncAISettings();}});
-    if(!PersonalAI.supported())state.textContent='암호화 저장을 지원하는 HTTPS 브라우저에서 접속해주세요.';
+    window.addEventListener?.('storage',e=>{if(e.key==='sg_ai_simple_v1')syncAISettings();});
   }
   function status(text){document.getElementById('fa-status').textContent=text;}
   function scrollChat(){const thread=document.getElementById('fa-messages');thread.scrollTop=thread.scrollHeight;}
@@ -3978,19 +3937,19 @@ const FieldAssistant = (() => {
     bubble('assistant',text);status('마이크를 누르거나 메시지를 입력하세요.');
     if(document.getElementById('fa-read').checked)speak(text);
   }
-  async function ask(){
+  async function ask(retryQuestion){
     if(busy)return;
-    const input=document.getElementById('fa-question'),q=input.value.trim();if(!q)return;
+    const input=document.getElementById('fa-question'),retry=typeof retryQuestion==='string',q=retry?retryQuestion:input.value.trim();if(!q)return;
     speechToken++;speaking=false;window.speechSynthesis?.cancel();
     const r=recognition;recognition=null;if(r)r.abort();
-    bubble('user',q);input.value='';busy=true;document.getElementById('fa-send').disabled=true;
+    if(!retry)bubble('user',q);pendingQuestion=null;input.value='';busy=true;document.getElementById('fa-send').disabled=true;
     status('일정을 확인하고 있어요…');
     try{
       const s=lastTarget||target(),local=answer(q,new Date(),s);
       if(local){result(local);return;}
       if(!navigator.onLine||!/^https?:$/.test(location.protocol)){result('지금은 오프라인이에요. “다음 일정 어디야”, “누구 만나”, “여기서 뭘 봐야 해”처럼 물어보시면 저장된 일정에서 찾아드릴게요.');return;}
       const connection=PersonalAI.connection();
-      if(!connection){stopVoice();result(AI_ERRORS.KEY_REQUIRED+' 저장된 일정 질문은 키 없이도 이용할 수 있어요.');openAISettings();return;}
+      if(!connection){pendingQuestion=q;stopVoice();result(AI_ERRORS.KEY_REQUIRED+' 저장하면 방금 질문에 이어서 답할게요.');openAISettings();return;}
       const controller=new AbortController();activeRequest=controller;
       const timer=setTimeout(()=>controller.abort(),22000);
       try{

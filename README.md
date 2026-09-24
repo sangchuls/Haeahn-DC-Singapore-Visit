@@ -8,16 +8,17 @@
 
 ### 개인 API 키 설정
 
-1. 채팅창 **AI 설정**에서 개인 설정과 제공사를 선택합니다.
+1. 채팅창에서 Gemini·Claude·GPT 중 사용할 AI를 선택합니다.
 2. 발급 링크에서 본인 계정으로 키를 만듭니다: [Gemini](https://aistudio.google.com/apikey), [Claude](https://platform.claude.com/settings/keys), [OpenAI](https://platform.openai.com/api-keys).
-3. API 키와 저장 비밀번호(8자 이상)를 입력하고 **저장·사용**을 누릅니다.
-4. **연결 확인**은 짧은 실제 API 요청이며 본인 API 사용량으로 집계됩니다. 새로고침 후에는 비밀번호로 **잠금 해제**합니다.
+3. API 키를 입력하고 **저장**하면 바로 질문할 수 있습니다. 다음 접속에도 유지됩니다.
 
-개인·제공사별 키는 이 브라우저의 localStorage에 AES-GCM으로 암호화해 저장하며, 비밀번호는 저장하거나 서버로 보내지 않습니다. PBKDF2-SHA256 310,000회, 무작위 salt/IV, 개인·제공사 식별자를 인증 데이터로 사용합니다. 복호화된 키는 페이지 메모리에만 유지하고 개인/제공사 변경·잠금·페이지 종료 시 해제합니다. 프로필은 본인 인증 계정이 아닌 로컬 저장 구분이며 기기 간 동기화되지 않습니다. 저장 비밀번호를 잊으면 키를 다시 등록합니다.
+비밀번호·개인 선택·잠금 해제는 없습니다. 먼저 질문했다면 키 저장 후 해당 질문에 이어서 답합니다. 키 저장 자체는 API를 호출하지 않으며, 기본 일정 조회도 토큰을 사용하지 않습니다.
 
-AI 호출 시 키는 HTTPS `x-ai-key` 헤더로 사이트 서버에 전달되고, 서버가 고정된 제공사 API에 중계합니다. 서버는 키를 저장/로그/응답에 남기지 않으며, 비밀번호는 전송되지 않습니다. 질문·최근 대화·출장 자료는 선택한 제공사에 전달됩니다. API 요금·한도는 본인 제공사 계정 기준입니다. OpenAI 요청은 `store:false`로 설정합니다. 브라우저/사이트 스크립트가 침해된 경우까지 암호화 저장이 보호하는 것은 아닙니다.
+키는 이 브라우저의 localStorage에 제공사별로 평문 저장합니다. 기기 간 동기화되지 않으며 공용 기기에서는 사용 후 **삭제**해주세요. 이전 암호화 저장 방식의 키는 한 번 다시 입력해야 합니다.
 
-연동 모델: Gemini `gemini-2.5-flash`, Claude `claude-sonnet-4-6`, GPT `gpt-4.1-mini`. 계정별 권한·모델 사용 가능 여부는 연결 확인으로 점검합니다. 참고한 공식 문서: [OpenAI Responses](https://developers.openai.com/api/docs/guides/text), [Gemini generateContent](https://ai.google.dev/api/generate-content), [Claude Messages](https://platform.claude.com/docs/en/api/messages/create).
+AI 호출 시 키는 HTTPS 요청의 x-ai-key 헤더로 사이트 서버에 전달되고, 서버가 고정된 제공사 API에 중계합니다. 서버는 키를 저장/로그/응답에 남기지 않습니다. 질문·최근 대화·출장 자료는 선택한 제공사에 전달되며 API 요금·한도는 본인 계정 기준입니다. OpenAI 요청은 store:false로 설정합니다.
+
+연동 모델: Gemini gemini-2.5-flash, Claude claude-sonnet-4-6, GPT gpt-4.1-mini. 실제 질문 시 인증·한도·연결 오류를 안내합니다.
 
 버튼을 누르면 말풍선 채팅창이 열립니다. **음성 대화**를 누르면 질문을 듣고 답변을 읽은 뒤 다음 질문을 기다립니다. **대화 중지** 또는 창 닫기로 마이크와 읽기를 종료합니다. 일정 선택·출장자·현장 메모는 채팅창 상단의 접힌 메뉴에 있습니다. 최근 대화는 페이지를 열어 둔 동안 유지되며, 자연어 후속 질문에는 최근 8개 메시지를 서버로 전달합니다.
 

@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   if(mode==='assistant'&&!Object.hasOwn(models,provider))return res.status(400).json({code:'INVALID_PROVIDER',error:'AI 제공사를 선택하세요.'});
   // Personal keys exist only during this request. Never log, persist or echo headers/body.
   const apiKey=mode==='assistant'?req.headers?.['x-ai-key']:process.env.ANTHROPIC_API_KEY;
-  if(typeof apiKey!=='string'||!apiKey.trim())return res.status(mode==='assistant'?401:500).json({code:'KEY_REQUIRED',error:mode==='assistant'?'개인 AI 설정에서 API 키를 저장하고 잠금을 풀어주세요.':'공용 시나리오 API가 설정되지 않았습니다.'});
+  if(typeof apiKey!=='string'||!apiKey.trim())return res.status(mode==='assistant'?401:500).json({code:'KEY_REQUIRED',error:mode==='assistant'?'API 키를 입력하고 저장해주세요.':'공용 시나리오 API가 설정되지 않았습니다.'});
   if(apiKey.length>1024||/[^\x21-\x7e]/.test(apiKey))return res.status(400).json({code:'INVALID_KEY',error:'API 키 형식을 확인하세요.'});
   if (!context || typeof context !== 'string') {
     return res.status(400).json({ error: 'context 필드가 필요합니다' });
