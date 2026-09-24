@@ -1209,6 +1209,19 @@ body.panel-open .leaflet-control-container{pointer-events:none;opacity:.35}
 </div>
 <script>
 // ── 교통수단 데이터 (JS 객체로 완전 분리) ────────────────────
+// Minimum travel data transcribed and visually checked against four e-tickets.
+// No booking references, ticket numbers, payment data or original PDFs belong here.
+const AIR_TRIP = {
+  metadata:{verification_status:'verified',source:'e-ticket',verified_on:'2026-09-24',note:'2026-09-08 발행 항공권 4명분 1페이지 대조. 운항 당일 변경 가능.'},
+  outbound:{date:'2026-09-27',flight:'SQ607',from:'ICN',to:'SIN',departure:'09:00',arrival:'14:20',departure_terminal:'1',arrival_terminal:null,duration:'6시간 20분',aircraft:'Airbus A350-900',arrival_terminal_metadata:{verification_status:'unverified',source:'e-ticket',note:'항공권 도착 터미널 공란 · 항공사/탑승권 확인 필요'}},
+  inbound:{date:'2026-10-02',flight:'SQ600',from:'SIN',to:'ICN',departure:'08:10',arrival:'15:30',departure_terminal:'2',arrival_terminal:'1',duration:'6시간 20분',aircraft:'787 ALL SERIES PASSENGER'},
+  passengers:[
+    {name:'김상범',en:'KIM SANG BEOM',out:'18A',back:'20K',cabin:'Business',baggage:'출국 40kg / 귀국 40kg'},
+    {name:'정재수',en:'CHUNG JAESOO',out:'64D',back:'66D',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'},
+    {name:'임상철',en:'LIM SANGCHUL',out:'66G',back:'64G',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'},
+    {name:'류환재',en:'RYU HWANJAE',out:'67D',back:'63G',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'}
+  ]
+};
 const TR = {
   // D0 - 창이공항 도착
   d0_arrive:[
@@ -1217,7 +1230,7 @@ const TR = {
      body:'요금: SGD 25~35 (공항할증 포함) / 소요 30~45분\n4명 → GrabCar Max (7인승) 1대 선택\n기사에게: "Oasia Hotel Downtown, 100 Peck Seah Street, Tanjong Pagar, Singapore 079333"'},
     {id:'mrt',  name:'MRT (저렴)', badge:'저렴', bc:'#1255a0', mode:'transit',
      from:[1.3560743,103.9874748], to:[1.275835,103.8442824],
-     body:'요금: SGD 1.9~2.5 / 소요 35~40분\nT3 지하 1층 MRT역 → East West Line (EW29 창이공항)\n→ EW15 Tanjong Pagar역 하차 → 도보 8분\n단점: 짐 많을 때 불편'},
+     body:'요금: SGD 1.9~2.5 / 소요 35~40분\n도착 터미널 확인 → MRT 표지판 → East West Line (EW29 창이공항)\n→ EW15 Tanjong Pagar역 하차 → 도보 8분\n단점: 짐 많을 때 불편'},
     {id:'taxi', name:'택시', badge:'편리', bc:'#c45e0a', mode:'driving',
      from:[1.3560743,103.9874748], to:[1.275835,103.8442824],
      body:'요금: SGD 28~40 (미터+공항할증) / 소요 25~35분\n도착홀 Taxi 줄 탑승 → "Oasia Hotel Downtown, Tanjong Pagar"\n신용카드 대부분 가능'},
@@ -1235,10 +1248,10 @@ const TR = {
   d4_airport:[
     {id:'grab', name:'Grab (추천)', badge:'추천', bc:'#1e7e5a', mode:'driving',
      from:[1.275835,103.8442824], to:[1.3560743,103.9874748],
-     body:'GrabCar Max (7인승) → 목적지: "Singapore Changi Airport Terminal 3"\nSGD 22~30 / 약 20분 (새벽이라 막힘 없음) / <b>05:30 출발</b> 권장'},
+     body:'GrabCar Max (7인승) → 목적지: "Singapore Changi Airport Terminal 2"\nSGD 22~30 / 약 20분 (새벽이라 막힘 없음) / <b>05:30 출발</b> 권장'},
     {id:'taxi', name:'택시', badge:'편리', bc:'#c45e0a', mode:'driving',
      from:[1.275835,103.8442824], to:[1.3560743,103.9874748],
-     body:'미터제 + 새벽할증(00:00~06:00 50%) + 공항할증 → SGD 30~40\n"Changi Airport Terminal 3" 탑승 시 전달\n약 20분. 새벽에는 호텔 프론트에 미리 콜택시 요청해두면 확실합니다'},
+     body:'미터제 + 새벽할증(00:00~06:00 50%) + 공항할증 → SGD 30~40\n"Changi Airport Terminal 2" 탑승 시 전달\n약 20분. 새벽에는 호텔 프론트에 미리 콜택시 요청해두면 확실합니다'},
   ],
   // D2 - 호텔→MBS
   bus_hotel_mbs:[
@@ -1413,7 +1426,7 @@ var CHECKLIST = [
       {id:'p1', t:'여권 유효기간 확인', d:'2027년 4월 이후 만료여야 안전 (싱가포르·말레이시아 모두 6개월 이상 요구)', critical:true},
       {id:'p2', t:'여권 사본 촬영 → 폰에 저장', d:'분실 대비. 클라우드에도 백업'},
       {id:'p3', t:'DCW Asia 2026 등록 확인', d:'등록 확인 메일의 QR 코드를 폰에 저장 또는 캡처'},
-      {id:'p4', t:'항공권 e-티켓 확인 — 귀국편 시각 주의', d:'싱가포르항공\n<b>9/27(일) SQ607</b> 인천 09:00 → 싱가포르 14:20\n<b>10/2(금) SQ606</b> 싱가포르 08:10 → 인천 15:30\n귀국편이 <b>오전</b>입니다. e-티켓의 편명과 시각을 직접 대조하세요', critical:true},
+      {id:'p4', t:'항공권 e-티켓 확인 — 귀국편 시각 주의', d:'싱가포르항공\n<b>9/27(일) SQ607</b> 인천 09:00 → 싱가포르 14:20\n<b>10/2(금) SQ600</b> 싱가포르 08:10 → 인천 15:30\n귀국편이 <b>오전</b>입니다. e-티켓의 편명과 시각을 직접 대조하세요', critical:true},
       {id:'p5', t:'호텔 예약 확인서', d:'Oasia Hotel Downtown · 5박 · 4실 · 입국심사에서 물어볼 수 있음'},
       {id:'p6', t:'여행자보험 가입', d:'출장 규정 확인 후 회사 단체보험 또는 개인 가입'},
     ]},
@@ -1475,7 +1488,7 @@ var CHECKLIST = [
     items:[
       {id:'f1', t:'온라인 체크인 (출발 24시간 전부터)', d:'좌석 지정. 4명 가까운 자리로'},
       {id:'f2', t:'여권을 가방에 넣기', d:'9/29 조호바루 투어에 4명 전원 필수. 호텔 금고에 두면 안 됨', critical:true},
-      {id:'f3', t:'수하물 무게 확인', d:'김상범 소장 30kg (비즈니스) · 나머지 3인 23kg (이코노미)'},
+      {id:'f3', t:'수하물 무게 확인', d:'e-Ticket 확인: 김상범 소장 출국·귀국 각 40kg (비즈니스) · 나머지 3인 출국 25kg / 귀국 30kg (이코노미)'},
       {id:'f4', t:'액체류 100ml 이하로 정리', d:'기내 휴대 시. 투명 지퍼백에'},
       {id:'f5', t:'담배 전량 제외', d:'싱가포르는 담배 반입 전면 금지. 적발 시 벌금 SGD 200~1000', critical:true},
       {id:'f6', t:'주류 면세 한도 확인', d:'1인 1리터까지'},
@@ -1506,7 +1519,7 @@ var CHECKLIST = [
     items:[
       {id:'d1', t:'여권 · 지갑 · 폰 · 보조배터리', d:'출발 직전 마지막 확인'},
       {id:'d2', t:'인천공항 T1 07:00 집결', d:'싱가포르항공 카운터 (탑승권에서 H 또는 J 구역 확인)\nP5에 주차했다면 셔틀 이동 시간을 감안해 06:30까지는 입차'},
-      {id:'d3', t:'07:30까지 카운터 도착', d:'출발 90분 전 마감. 수하물 위탁까지 완료', critical:true},
+      {id:'d3', t:'07:00 집결 · 여유 있게 체크인', d:'e-Ticket 안내: 일반석은 출발 90분 전(07:30), 비즈니스석은 60분 전(08:00)까지 탑승권 발급. 실제 수속 마감은 항공사 확인', critical:true},
       {id:'d4', t:'기내에서 입국카드 작성', d:'직업 Architect · 체류지 Oasia Hotel Downtown, Tanjong Pagar · 목적 Business'},
       {id:'d5', t:'도착 후 시계를 싱가포르 시간으로', d:'한국보다 1시간 느림 (UTC+8)'},
     ]},
@@ -1518,14 +1531,14 @@ const DAYS=[
  lat:37.4491,lng:126.4503,zoom:11,checklist:true},
 {id:1,date:'9/27',wd:'일',badge:'✈️ 출발',bc:'#1255a0',
  title:'9/27 (일)',sub:'인천 출발 → 창이 도착 → 체크인 → 첫날 저녁',
- lat:1.3560743,lng:103.9874748,zoom:13,lbl:'창이공항 T3',
+ lat:1.3560743,lng:103.9874748,zoom:13,lbl:'창이공항 · 도착 터미널 미확정',
  items:[
   {time:'07:00',type:'travel',icon:'✈️',title:'인천공항 1터미널 집결',
    loc:'인천국제공항 T1 · 출국장 3층',chips:[{t:'SQ607',c:'b'},{t:'09:00 출발',c:'b'}],
    lat:37.4491,lng:126.4503,zoom:14,
    secs:[
-    {t:'항공편',b:'<b>SQ607</b> 09:00 출발 → 14:20 도착 (6h20m)\n<b>김상범 소장</b> — 비즈니스석 / 수하물 30kg\n<b>정재수·임상철·류환재</b> — 이코노미석 / 수하물 23kg'},
-    {t:'체크인 마감',b:'<b>07:30</b>까지 카운터 도착 필수 (출발 90분 전 마감)\n싱가포르항공 카운터: 인천 T1 H구역 또는 J구역 (탑승권 확인)'},
+    {t:'항공편',b:'<b>SQ607</b> 09:00 출발 → 14:20 도착 (6h20m)\n<b>김상범 소장</b> — 비즈니스석 / 출국 수하물 40kg\n<b>정재수·임상철·류환재</b> — 이코노미석 / 출국 수하물 25kg'},
+    {t:'체크인 마감',b:'e-Ticket 안내: 일반석은 <b>07:30</b>, 비즈니스석은 <b>08:00</b>까지 탑승권 발급\n이는 항공권 유의사항이며 실제 수속 마감은 항공사 확인\n싱가포르항공 카운터: 인천 T1 H구역 또는 J구역 (탑승권 확인)'},
    ],tip:'싱가포르(UTC+8)는 한국보다 1시간 느림. 도착 후 시계 조정.',
    mapQ:'인천국제공항 1터미널'},
 
@@ -1534,20 +1547,20 @@ const DAYS=[
    lat:1.3560743,lng:103.9874748,zoom:10,
    secs:[
     {t:'기내 준비',b:'<b>싱가포르 입국카드</b> 기내에서 미리 작성\n직업(Occupation): Architect\n체류지(Address): Oasia Hotel Downtown, 100 Peck Seah Street, Tanjong Pagar, Singapore\n방문 목적(Purpose): Business'},
-   ],tip:'도착 터미널을 탑승권에서 꼭 확인 (T2 또는 T3).',
+   ],tip:'항공권의 싱가포르 도착 터미널은 공란입니다. 항공사 운항 안내와 탑승권에서 확인하세요.',
    mapQ:'Singapore Changi Airport'},
 
   {time:'14:20',type:'travel',icon:'🛬',title:'창이공항 도착 — 입국 → 교통편',
-   loc:'싱가포르 창이공항 T3',warn:'⚠️ 아래 도착 절차 및 교통편 확인',
+   loc:'싱가포르 창이공항 · 도착 터미널 확인 필요',warn:'⚠️ 아래 도착 절차 및 교통편 확인',
    chips:[{t:'입국심사',c:'g'},{t:'수하물',c:'g'},{t:'Grab',c:'o'}],
    lat:1.3560743,lng:103.9874748,zoom:15,
    secs:[
     {t:'① 입국심사',b:'도착 → Arrivals 안내판 → <b>Immigration (Visitor)</b> 줄\n여권 + 입국카드 제출 / 지문 등록 / 약 15~25분 소요'},
-    {t:'② 수하물 수취 (Baggage Claim)',b:'<b>SQ607 / ICN</b> 표시 캐러셀 번호 확인 후 대기\nT3 기준: Level 1, Arrival Hall B구역\n짐 분실 시 벨트 옆 Lost & Found 즉시 신고'},
+    {t:'② 수하물 수취 (Baggage Claim)',b:'<b>SQ607 / ICN</b> 표시 캐러셀 번호 확인 후 대기\n도착 터미널은 항공권 공란입니다. 현장 수하물 안내판을 확인하세요\n짐 분실 시 벨트 옆 Lost & Found 즉시 신고'},
     {t:'③ 세관 통과 (Customs)',b:'녹색 줄 (Nothing to Declare) 통과\n주류 면세: 1L 이하 / 담배 반입 전면 금지 (벌금 SGD 200~1000)'},
-    {t:'④ T3 출구 & Grab 픽업존',b:'세관 통과 → <b>Arrival Hall</b> 진입\n<b>Exit B 또는 Exit C</b> 방향으로 나오기\n→ 도착홀 나와 왼쪽 <b>Ground Transport / Ride-Hailing 표지판</b> 따라\n→ 에스컬레이터 타고 <b>B1층 Grab/Ride-Hailing 픽업존</b> 이동\n→ Grab 앱 열어 목적지: <b>Oasia Hotel Downtown, Tanjong Pagar</b> 입력\n→ 차량 배정 후 번호판 확인 후 탑승'},
+    {t:'④ 도착 터미널 출구 & Grab 픽업존',b:'세관 통과 → <b>Arrival Hall</b> 진입\n항공권에는 도착 터미널이 기재되어 있지 않습니다.\n<b>Ground Transport / Ride-Hailing 표지판</b>과 Grab 앱의 픽업 위치를 확인하세요\n→ Grab 앱 열어 목적지: <b>Oasia Hotel Downtown, Tanjong Pagar</b> 입력\n→ 차량 배정 후 번호판 확인 후 탑승'},
    ],tip:'GrabCar Max (7인승) 1대 선택 → 4명+짐 한 번에 이동 가능.\n결제: 카드 등록 또는 현금 가능.',
-   mapQ:'Singapore Changi Airport Terminal 3 Arrival Hall',
+   mapQ:'Singapore Changi Airport',
    trKey:'d0_arrive'},
 
   {time:'16:00',type:'travel',icon:'🏨',title:'호텔 체크인',
@@ -1887,7 +1900,7 @@ const DAYS=[
    chips:[{t:'마지막 밤',c:'k'}],lat:1.275835,lng:103.8442824,zoom:15,
    secs:[
     {t:'오늘 밤에 끝낼 것',b:'① <b>숙박비 정산(Settle the bill)</b>을 프론트에서 미리 — 새벽 체크아웃 때 키만 반납하면 됩니다\n② 캐리어 싸기 — 기내 반입 가방과 위탁 수하물 분리\n③ 05:30 Grab 예약 또는 프론트에 콜택시 요청\n④ 모닝콜 <b>04:50</b> 요청'},
-    {t:'수하물 규정',b:'<b>김상범 소장</b> 비즈니스 30kg / <b>나머지 3인</b> 이코노미 23kg\n면세점 주류는 위탁, 보조배터리는 반드시 기내 반입'},
+    {t:'수하물 규정',b:'<b>김상범 소장</b> 비즈니스 귀국 40kg / <b>나머지 3인</b> 이코노미 귀국 30kg\n면세점 주류는 위탁, 보조배터리는 반드시 기내 반입'},
    ],tip:'프론트에 이렇게 말하면 됩니다 — "We check out at 5:30 tomorrow morning. Can we settle the bill tonight and book a taxi for 5:30?"',
    mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
 
@@ -1906,38 +1919,38 @@ const DAYS=[
    ],tip:'전날 밤에 정산을 끝냈다면 키 반납만 하면 됩니다.',
    mapQ:'Oasia Hotel Downtown 100 Peck Seah Street Singapore'},
 
-  {time:'05:30',type:'travel',icon:'🚕',title:'호텔 출발 → 창이공항 T3',
-   loc:'100 Peck Seah St → Changi Airport T3',
-   warn:'⚠️ 08:10 출발 · 카운터 마감 07:10 — 05:30에는 나서야 합니다',
+  {time:'05:30',type:'travel',icon:'🚕',title:'호텔 출발 → 창이공항 T2',
+   loc:'100 Peck Seah St → Changi Airport T2',
+   warn:'⚠️ 08:10 출발 · 카운터 마감은 항공사 확인 — 05:30에는 나서야 합니다',
    chips:[{t:'Grab 또는 택시',c:'b'},{t:'약 20분',c:'k'}],
    lat:1.275835,lng:103.8442824,zoom:15,
    secs:[
-    {t:'이동',b:'호텔 → 창이공항 <b>T3</b> (싱가포르항공 터미널)\n새벽이라 도로가 비어 <b>약 20분</b>\nGrab SGD 22~30 · 택시는 새벽할증 붙어 SGD 30~40'},
-    {t:'기사에게',b:'"Changi Airport <b>Terminal 3</b>, departure please."\n4명 + 캐리어 4개면 <b>GrabCar Max</b> 또는 <b>GrabMPV</b>로 부르세요. 일반 GrabCar는 짐이 안 들어갑니다'},
+    {t:'이동',b:'호텔 → 창이공항 <b>T2</b> (귀국 SQ600 항공권 기준)\n새벽이라 도로가 비어 <b>약 20분</b>\nGrab SGD 22~30 · 택시는 새벽할증 붙어 SGD 30~40'},
+    {t:'기사에게',b:'"Changi Airport <b>Terminal 2</b>, departure please."\n4명 + 캐리어 4개면 <b>GrabCar Max</b> 또는 <b>GrabMPV</b>로 부르세요. 일반 GrabCar는 짐이 안 들어갑니다'},
     {t:'새벽 호출이 불안하면',b:'전날 밤 프론트에 콜택시를 예약해두는 편이 확실합니다.\n"Can you book a taxi for 5:30 tomorrow morning? Four people with luggage."'},
    ],tip:'Grab이 새벽에 안 잡히면 호텔 앞 택시 스탠드 또는 프론트에 바로 요청하세요.',
-   mapQ:'Singapore Changi Airport Terminal 3 Departure Hall',trKey:'d4_airport'},
+   mapQ:'Singapore Changi Airport Terminal 2 Departure Hall',trKey:'d4_airport'},
 
-  {time:'06:00',type:'travel',icon:'🛂',title:'창이 T3 도착 — 체크인 · 세금환급 · 출국',
-   loc:'Changi Airport Terminal 3 Departure Hall',
+  {time:'06:00',type:'travel',icon:'🛂',title:'창이 T2 도착 — 체크인 · 세금환급 · 출국',
+   loc:'Changi Airport Terminal 2 Departure Hall',
    warn:'⚠️ 세금환급(GST)은 수하물 부치기 전에 — 순서를 바꾸면 못 받습니다',
-   chips:[{t:'카운터 마감 07:10',c:'r'},{t:'GST 환급',c:'o'}],
+   chips:[{t:'카운터 마감은 항공사 확인',c:'r'},{t:'GST 환급',c:'o'}],
    lat:1.3560743,lng:103.9874748,zoom:15,
    secs:[
     {t:'① 세금환급 먼저 (쇼핑했다면)',b:'싱가포르는 <b>GST 9% 환급(Tourist Refund Scheme)</b>이 됩니다.\n같은 가게에서 <b>S$100 이상</b> 구매 + eTRS 영수증이 있어야 합니다.\n<b>출국장 체크인 카운터 앞 eTRS 키오스크</b>에서 여권 스캔 → 환급 신청\n<b>산 물건을 위탁수하물에 넣을 거라면 부치기 전에</b> 해야 합니다. 부치고 나면 검사 요청에 응할 수 없어 거절됩니다'},
-    {t:'② 체크인 · 수하물',b:'싱가포르항공 카운터 (T3 Row 5~11)\n<b>마감 07:10</b> (출발 60분 전)\n김상범 소장 비즈니스 30kg / 나머지 3인 23kg\n보조배터리·전자담배류는 위탁 불가 — 기내로'},
-    {t:'③ 출국심사 · 보안',b:'창이는 자동출국심사가 빨라 보통 10~15분입니다.\n싱가포르 T3는 <b>탑승구에서 개별 보안검사</b>를 합니다 — 게이트에 일찍 가세요\n면세구역 쇼핑 시간은 07:00~07:40 정도 잡으면 적당합니다'},
+    {t:'② 체크인 · 수하물',b:'싱가포르항공 T2 카운터 (행 번호는 현장 안내 확인)\n<b>06:00 체크인 계획</b> · 실제 마감은 항공사 확인\ne-Ticket 유의사항상 일반석은 90분 전(06:40), 비즈니스석은 60분 전(07:10)까지 탑승권 발급 안내\n김상범 소장 비즈니스 귀국 40kg / 나머지 3인 이코노미 귀국 30kg\n보조배터리·전자담배류는 위탁 불가 — 기내로'},
+    {t:'③ 출국심사 · 보안',b:'창이는 자동출국심사가 빨라 보통 10~15분입니다.\nT2 보안검사 위치와 탑승구는 현장 안내를 확인하세요 — 게이트에 일찍 가세요\n면세구역 쇼핑 시간은 07:00~07:40 정도 잡으면 적당합니다'},
    ],tip:'TWG 홍차, 타이거밤, 카야잼이 무난한 선물입니다. 주류는 한국 면세 한도 2병·2L·US$400까지.',
-   mapQ:'Singapore Changi Airport Terminal 3 Departure Hall'},
+   mapQ:'Singapore Changi Airport Terminal 2 Departure Hall'},
 
-  {time:'08:10',type:'travel',icon:'🛫',title:'SQ606 출발 SIN→ICN',
-   loc:'창이 T3 08:10 출발 → 인천 T1 15:30 도착',
-   chips:[{t:'SQ606',c:'b'},{t:'08:10 출발',c:'b'},{t:'약 6h20m',c:'k'}],
+  {time:'08:10',type:'travel',icon:'🛫',title:'SQ600 출발 SIN→ICN',
+   loc:'창이 T2 08:10 출발 → 인천 T1 15:30 도착',
+   chips:[{t:'SQ600',c:'b'},{t:'08:10 출발',c:'b'},{t:'약 6h20m',c:'k'}],
    lat:1.3560743,lng:103.9874748,zoom:12,
    secs:[
-    {t:'비행',b:'<b>SQ606</b> · 창이 <b>08:10</b> 출발 → 인천 T1 <b>15:30</b> 도착 (약 6시간 20분)\n시차 1시간 (싱가포르가 1시간 느림)\n기내에서 여행자 세관신고는 모바일 신고로 대체 가능합니다'},
+    {t:'비행',b:'<b>SQ600</b> · 창이 <b>08:10</b> 출발 → 인천 T1 <b>15:30</b> 도착 (약 6시간 20분)\n시차 1시간 (싱가포르가 1시간 느림)\n기내에서 여행자 세관신고는 모바일 신고로 대체 가능합니다'},
    ],tip:'낮 비행이라 도착 후 반차 쓰지 않아도 되는 시간대입니다.',
-   mapQ:'Singapore Changi Airport Terminal 3'},
+   mapQ:'Singapore Changi Airport Terminal 2'},
 
   {time:'15:30',type:'travel',icon:'🏠',title:'인천공항 T1 도착 · 해산',
    loc:'인천국제공항 1터미널',chips:[{t:'출장 완료 🎉',c:'g'}],
@@ -2021,13 +2034,13 @@ var PLACE_LABEL = {
   // 일자별 일정
   '인천공항 1터미널 집결':['인천공항 T1','Incheon Airport T1'],
   'SQ607 출발 ICN→SIN':['싱가포르 창이공항','Singapore Changi Airport'],
-  '창이공항 도착 — 입국 → 교통편':['창이공항 T3','Changi Airport T3'],
+  '창이공항 도착 — 입국 → 교통편':['창이공항 · 터미널 미확정','Changi Airport · terminal unconfirmed'],
   '팀 첫날 저녁식사':['라우파삿','Lau Pa Sat'],
   '호텔 체크인':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '숙소 복귀 — 첫날 마무리':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 출발 — 전용버스':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 출발':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
-  '호텔 출발 → 창이공항 T3':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
+  '호텔 출발 → 창이공항 T2':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '호텔 복귀 · 짐 정리':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '기상 · 마지막 점검':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '싱가포르 귀환':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
@@ -2046,8 +2059,8 @@ var PLACE_LABEL = {
   '늦은 아침 — 오늘은 공식 일정 없음':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
   '자유 일정 — 월요일 루트 재사용':['마리나베이 샌즈','Marina Bay Sands'],
   '마지막 저녁 — 시내 한 바퀴':['머라이언 파크','Merlion Park'],
-  '창이 T3 도착 — 체크인 · 세금환급 · 출국':['창이공항 T3','Changi Airport T3'],
-  'SQ606 출발 SIN→ICN':['창이공항 T3','Changi Airport T3'],
+  '창이 T2 도착 — 체크인 · 세금환급 · 출국':['창이공항 T2','Changi Airport T2'],
+  'SQ600 출발 SIN→ICN':['창이공항 T2','Changi Airport T2'],
   '인천공항 T1 도착 · 해산':['인천공항 T1','Incheon Airport T1'],
   // 월요일 루트
   '숙소 출발 — Oasia Hotel Downtown':['오아시아 호텔 다운타운','Oasia Hotel Downtown'],
@@ -2273,6 +2286,7 @@ function pushPastLine(latlngs){
 
 function drawRoute(trObj){
   if(!mapReady||!trObj) return;
+  if(!Array.isArray(trObj.from)||!Array.isArray(trObj.to)){alert('터미널 좌표는 등록되어 있지 않습니다. 구글맵에서 확인된 터미널 이름으로 길찾기를 이용하세요.');return;}
   const from=trObj.from, to=trObj.to;
   const isSamePoint=(from[0]===to[0]&&from[1]===to[1]);
   if(isSamePoint) return;
@@ -2315,7 +2329,7 @@ function pinIcon(lat,lng,dot,lbl,color,label){
   return L.marker([lat,lng],{icon:ic}).bindPopup(`<b style="font-size:11px">${lbl}</b>`).addTo(map);
 }
 
-function flyTo(lat,lng,zoom){ if(mapReady) map.flyTo([lat,lng],zoom||14,{animate:true,duration:0.7}); }
+function flyTo(lat,lng,zoom){ if(mapReady && Number.isFinite(lat) && Number.isFinite(lng)) map.flyTo([lat,lng],zoom||14,{animate:true,duration:0.7}); }
 
 // ── 탭 ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
@@ -2484,6 +2498,7 @@ function buildTransportDOM(trKey){
     // 앱내 경로 버튼
     const b1=document.createElement('button'); b1.className='nbtn nbtn-map';
     b1.textContent='🗺️ 앱내 경로';
+    if(!Array.isArray(tr.from)||!Array.isArray(tr.to)){b1.disabled=true;b1.textContent='정확한 좌표 미등록';}
     b1.addEventListener('click',function(e){e.stopPropagation();handleRoute(uid,trKey,tr.id);});
     btns.appendChild(b1);
     // 구글맵 네비 버튼
@@ -2496,7 +2511,7 @@ function buildTransportDOM(trKey){
     if(tr.id==='grab'){
       const b3=document.createElement('button'); b3.className='nbtn nbtn-grab';
       b3.textContent='🚗 Grab 열기';
-      if(tr.map_pin_usage==='reference_only'){b3.disabled=true;b3.textContent='터미널 확인 필요';}
+      if(tr.map_pin_usage==='reference_only'||!Array.isArray(tr.to)){b3.disabled=true;b3.textContent=tr.destination_query?'Grab에서 T2 직접 선택':'터미널 확인 필요';}
       b3.addEventListener('click',function(e){e.stopPropagation();openGrab(trKey);});
       btns.appendChild(b3);
     }
@@ -2834,6 +2849,7 @@ function drawDayRoute(dayIdx){
 function openGmapsDay(dayIdx){
   var d = DAYS[dayIdx];
   if(!d) return;
+  if((d.items||[]).some(it=>/ICN→SIN|SIN→ICN/.test(it.title))){alert('항공 이동이 포함된 날은 전체 자동차 길찾기를 제공하지 않습니다. 각 공항 교통편의 길찾기를 이용하세요.');return;}
   if((d.items||[]).some(it=>it.map_pin_usage==='reference_only')){ alert('미확정 목적지가 포함되어 전체 길찾기를 열지 않습니다. 참관단 확정 안내를 확인하세요.'); return; }
   var pts = d.items.filter(function(it){ return it.lat && it.lng; });
   if(pts.length < 2) return;
@@ -2881,7 +2897,8 @@ function buildDayContext(dayIdx){
   lines.push('');
   lines.push('기존 앱 자료이며 확정 문서 재검증 전입니다. 추측으로 시간·주소·담당자·항공정보를 확정하지 마세요.');
   lines.push('KDCEA 9/29: 공문상 조호바루, 전용버스 단체 이동. Jalan Digital 11 지도 PIN은 등록주소 참고용이며 확정 목적지가 아닙니다. 참관단 확정 이메일 확인 필요.');
-  lines.push('항공 충돌: 사용자 요약은 귀국 SQ600/T2, 기존 앱은 SQ606/T3. PDF 미첨부로 대조 전입니다. 수하물·터미널·좌석을 확정하지 마세요.');
+  lines.push(FieldAssistant.FLIGHT_NOTE);
+  lines.push('e-Ticket 확인 항공 데이터: '+JSON.stringify(AIR_TRIP));
   lines.push('당일 일정:');
   (d.items||[]).forEach(function(it,i){
     var line = (i+1)+'. ['+it.time+'] '+it.title+' @ '+it.loc;
@@ -3125,15 +3142,15 @@ var SCENARIOS = {
     },
     { type:'tip', icon:'🛍️', title:'창이공항 면세쇼핑 꿀팁', badge:'쇼핑', badgeColor:'#2d6a4f',
       dialogs:[],
-      tip:'창이공항 T3 면세구역 추천 쇼핑:\n① TWG Tea — 싱가포르 고급 차 브랜드, 선물용 최고\n② 호랑이 연고 (Tiger Balm) — 저렴하고 실용적\n③ 반얀트리 어메니티 — 호텔 감성 스킨케어\n④ 킷캣 말차·두리안 맛 — 일본·동남아 한정판\n⑤ 주류 면세 한도: 1인 1리터\n환전 잔액은 공항 내 재환전보다 귀국 후 국내 은행 활용이 유리.'
+      tip:'창이공항 면세구역 쇼핑 참고 (T2 입점·위치는 현장 확인):\n① TWG Tea — 싱가포르 고급 차 브랜드, 선물용 최고\n② 호랑이 연고 (Tiger Balm) — 저렴하고 실용적\n③ 반얀트리 어메니티 — 호텔 감성 스킨케어\n④ 킷캣 말차·두리안 맛 — 일본·동남아 한정판\n⑤ 주류 면세 한도: 1인 1리터\n환전 잔액은 공항 내 재환전보다 귀국 후 국내 은행 활용이 유리.'
     },
     { type:'tip', icon:'🧳', title:'마지막 밤 — 짐 싸기 순서', badge:'호텔', badgeColor:'#854F0B',
       dialogs:[],
-      tip:'① <b>기내 반입</b>: 여권·지갑·노트북·<b>보조배터리</b>·충전기·상비약\n   보조배터리는 위탁이 안 됩니다. 캐리어에 넣으면 공항에서 다시 열어야 합니다\n② <b>위탁</b>: 옷, 면세 주류, 100ml 넘는 액체류\n   김상범 소장 30kg / 나머지 3인 23kg\n③ <b>세금환급 받을 쇼핑품</b>은 꺼내기 쉬운 위쪽에 — 공항에서 검사 요청이 올 수 있습니다\n④ 객실 금고는 <b>비어 있는지 눈으로</b> 확인. 가장 흔한 분실 경로입니다'
+      tip:'① <b>기내 반입</b>: 여권·지갑·노트북·<b>보조배터리</b>·충전기·상비약\n   보조배터리는 위탁이 안 됩니다. 캐리어에 넣으면 공항에서 다시 열어야 합니다\n② <b>위탁</b>: 옷, 면세 주류, 100ml 넘는 액체류\n   김상범 소장 귀국 40kg / 나머지 3인 귀국 30kg\n③ <b>세금환급 받을 쇼핑품</b>은 꺼내기 쉬운 위쪽에 — 공항에서 검사 요청이 올 수 있습니다\n④ 객실 금고는 <b>비어 있는지 눈으로</b> 확인. 가장 흔한 분실 경로입니다'
     },
     { type:'risk', icon:'⚠️', title:'내일 아침이 빠듯합니다', badge:'귀국', badgeColor:'#a82020',
       dialogs:[
-        {who:'상황', side:'left', text:'08:10 출발 · 카운터 마감 07:10. 04:50 기상 → 05:30 호텔 출발 → 06:00 창이 T3 도착이 기준선입니다.'}
+        {who:'상황', side:'left', text:'08:10 출발 · 카운터 마감은 항공사 확인. 04:50 기상 → 05:30 호텔 출발 → 06:00 창이 T2 도착이 기준선입니다.'}
       ],
       warn:'새벽 출발이라 늦잠 한 번이 치명적입니다. 모닝콜과 각자 휴대폰 알람을 이중으로 걸어두세요.\n세금환급(GST)을 받을 거라면 <b>수하물을 부치기 전에</b> eTRS 키오스크부터 들러야 합니다 — 순서를 바꾸면 환급이 거절됩니다.'
     }
@@ -3627,7 +3644,7 @@ function mk(tag,cls){const e=document.createElement(tag);if(cls)e.className=cls;
 const GM_MODE = {driving:'driving', transit:'transit', walking:'walking'};
 
 function openGoogleNav(trKey, trId){
-  if(['bus_mbs_jb','bus_jb_hotel','d4_airport'].includes(trKey)){ alert('목적지 확인 전에는 길찾기를 제공하지 않습니다. 참관단 안내 또는 항공권 PDF를 확인하세요.'); return; }
+  if(['bus_mbs_jb','bus_jb_hotel'].includes(trKey)){ alert('목적지 확인 전에는 길찾기를 제공하지 않습니다. 참관단 확정 안내를 확인하세요.'); return; }
   const trs = TR[trKey];
   if(!trs) return;
   const tr = trs.find(t=>t.id===trId);
@@ -3639,19 +3656,20 @@ function openGoogleNav(trKey, trId){
   // 구글맵 딥링크 — 앱 설치 시 앱 열림, 미설치 시 웹 열림
   // 형식: https://www.google.com/maps/dir/?api=1&origin=lat,lng&destination=lat,lng&travelmode=MODE
   const url = `https://www.google.com/maps/dir/?api=1`
-    + `&origin=${from[0]},${from[1]}`
-    + `&destination=${to[0]},${to[1]}`
+    + (from ? `&origin=${from[0]},${from[1]}` : '')
+    + `&destination=${encodeURIComponent(tr.destination_query || (to[0]+','+to[1]))}`
     + `&travelmode=${mode}`;
   window.open(url, '_blank');
 }
 
 function openGrab(trKey){
-  if(['bus_mbs_jb','bus_jb_hotel','d4_airport'].includes(trKey)){ alert('목적지 확인 전에는 차량 호출을 연결하지 않습니다. 확정 안내를 확인하세요.'); return; }
+  if(['bus_mbs_jb','bus_jb_hotel'].includes(trKey)){ alert('목적지 확인 전에는 차량 호출을 연결하지 않습니다. 확정 안내를 확인하세요.'); return; }
   const trs = TR[trKey];
   if(!trs) return;
   const tr = trs.find(t=>t.id==='grab');
   if(!tr) return;
   const to = tr.to;
+  if(!to){alert('귀국 목적지는 항공권에서 확인된 Changi Airport Terminal 2입니다. 정확한 하차 좌표는 등록되어 있지 않으므로 Grab 앱에서 T2 출국장을 직접 선택하세요.');return;}
 
   // Grab 딥링크 — 목적지 좌표로 앱 열기
   // grab:// 스킴: 앱 설치 시 앱 열림
@@ -3674,13 +3692,8 @@ function openGrab(trKey){
 // ── Field Assistant: existing DAYS/TR remain the source, no framework required ──
 const FieldAssistant = (() => {
   const KDCEA = '공문에는 조호바루로 기재되어 있으며, 현재 지도 위치는 데이터센터 등록주소를 기준으로 표시한 참고 위치입니다. 9월 29일 14:00 일정은 전용버스 단체 이동입니다. 정확한 목적지와 집결지는 참관단 확정 안내 확인이 필요합니다.';
-  const FLIGHT_NOTE = '항공권 PDF 확인 전입니다. 사용자 제공 요약과 기존 앱의 귀국편명(SQ606/SQ600), 터미널(T3/T2), 수하물 정보가 다릅니다. 기존 일정의 항공 안내를 확정 정보로 사용하지 마세요.';
-  const people = [
-    {name:'김상범',en:'KIM SANG BEOM',out:'18A',back:'20K',cabin:'Business',baggage:'40kg'},
-    {name:'정재수',en:'CHUNG JAESOO',out:'64D',back:'66D',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'},
-    {name:'임상철',en:'LIM SANGCHUL',out:'66G',back:'64G',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'},
-    {name:'류환재',en:'RYU HWANJAE',out:'67D',back:'63G',cabin:'Economy',baggage:'출국 25kg / 귀국 30kg'}
-  ];
+  const FLIGHT_NOTE = 'e-Ticket PDF 4명분 대조 완료 (2026-09-24). 출국 SQ607 · 인천 T1, 귀국 SQ600 · 창이 T2 → 인천 T1. 출국편의 싱가포르 도착 터미널은 항공권 공란으로 확인이 필요합니다. 좌석·터미널·운항 시각은 당일 변경될 수 있습니다.';
+  const people = AIR_TRIP.passengers;
   const checks = {
     Architecture:'장비 반입·교체 동선, 방화구획, 증설 공간은 어떻게 계획했나요?',
     Electrical:'전력 인입, UPS·발전기 구성과 정비 시 공급 경로를 확인하세요.',
@@ -3702,8 +3715,8 @@ const FieldAssistant = (() => {
   function normalize(day,it,index){
     const date=dateOf(day), title=it.title||it.name;
     const kd=date==='2026-09-29'&&(/Brightray|조호르 출발|싱가포르 귀환/.test(title));
-    const flight=date==='2026-10-02'&&(/창이|SIN→ICN/.test(title));
-    const reference=kd||flight||it.map_pin_usage==='reference_only';
+    const flight=it.flight_leg?AIR_TRIP[it.flight_leg]:null;
+    const reference=kd||it.map_pin_usage==='reference_only';
     const zone=date==='2026-09-27'&&/인천국제|ICN→SIN/.test(title+' '+it.loc)||date==='2026-10-02'&&/인천공항 T1 도착/.test(title)?'Asia/Seoul':'Asia/Singapore';
     const transports=TR[it.trKey]||[];
     const sections=(it.secs||[]).map(s=>clean(s.t)+': '+clean(s.b)).join('\n');
@@ -3711,7 +3724,7 @@ const FieldAssistant = (() => {
     return {
       id:date+'-'+(day.monday?curRoute+'-':'')+index,title,dayIndex:DAYS.indexOf(day),itemIndex:index,
       WHEN:{date,meeting_time:null,departure_time:/출발/.test(title)?it.time:null,start_time:it.time,end_time:null,timezone:zone},
-      WHERE:{place_name_ko:clean(it.loc||title),place_name_en:null,address:null,latitude:it.lat??null,longitude:it.lng??null,entrance:null,map_url:!reference&&it.mapQ?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(it.mapQ):null,map_pin_usage:reference?'reference_only':'existing_app'},
+      WHERE:{place_name_ko:clean(it.destination_query||it.loc||title),place_name_en:it.destination_query||null,address:null,latitude:it.destination_query?null:it.lat??null,longitude:it.destination_query?null:it.lng??null,entrance:null,map_url:!reference&&it.mapQ?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(it.mapQ):null,map_pin_usage:reference?'reference_only':it.destination_query?'named_destination':'existing_app',terminal:it.terminal??null},
       HOW:{departure_location:transports[0]?.from||null,transportation:kd?'chartered_bus':it.how||transports.map(t=>t.name).join(' / ')||null,estimated_duration:null,recommended_departure:null,buffer_time:null,details:transports.map(t=>clean(t.body)).join('\n')},
       ARRIVAL:{meeting_point:null,entrance:null,contact_person:null,contact:null,access_procedure:null},
       WHAT:{visit_purpose:null,meeting_purpose:null,activity:clean(it.desc)||sections},
@@ -3720,7 +3733,8 @@ const FieldAssistant = (() => {
       MATERIAL:{required_documents:[],drawings:[],presentation:null,passport:null,namecard:null,etc:[]},
       NEXT:{next_schedule:null,next_destination:null,recommended_departure_time:null},
       NOTE:{memo:clean(it.warn),site_notes:[]},
-      metadata:{...meta(reference?'unverified':'provisional'),fields:{'WHERE':meta(reference?'unverified':'provisional'),'WHEN':meta(),'PEOPLE.participants':meta('unverified')},note:kd?KDCEA:flight?FLIGHT_NOTE:it.verification_note||'기존 앱 자료 · 실제 운영 여부 확인 필요'},
+      FLIGHT:flight?{...flight,metadata:AIR_TRIP.metadata}:null,
+      metadata:{...meta(reference?'unverified':'provisional'),fields:{'WHERE':meta(reference?'unverified':'provisional'),'WHERE.terminal':it.terminal?meta('verified','e-ticket','항공권 1페이지 확인'):meta('unverified'),'WHERE.latitude':meta(it.destination_query?'unverified':'provisional'),'WHEN':meta(),'WHEN.start_time':it.flight_event?meta('verified','e-ticket','항공권 1페이지 확인'):meta(),'PEOPLE.participants':meta('unverified')},note:kd?KDCEA:it.verification_note||'기존 앱 계획 · 항공편 데이터는 e-Ticket 확인'},
       start:stamp(date,it.time,zone),isDC
     };
   }
@@ -3750,7 +3764,8 @@ const FieldAssistant = (() => {
     }
     if(/비행|좌석|항공|수하물|터미널|공항/.test(q)){
       const p=people.find(p=>q.includes(p.name)||q.toUpperCase().includes(p.en))||people.find(p=>p.name===document.getElementById('fa-person')?.value);
-      return FLIGHT_NOTE+'\n\n사용자 제공 요약 (manual input / provisional):\n9/27 SQ607 · 인천 T1 09:00 → 싱가포르 14:20 · 6시간 20분 · A350-900\n10/2 SQ600 · 싱가포르 T2 08:10 → 인천 T1 15:30 · 6시간 20분\n'+(p?p.name+' · '+p.cabin+' · 출국 '+p.out+' / 귀국 '+p.back+' · '+p.baggage:people.map(p=>p.name+' · 출국 '+p.out+' / 귀국 '+p.back+' · '+p.cabin+' · '+p.baggage).join('\n'))+'\n기존 일정은 귀국일 05:30 호텔 출발·06:00 공항 도착을 제안합니다. 권장안이며 항공권·항공사 안내 확인이 필요합니다.';
+      const out=AIR_TRIP.outbound,back=AIR_TRIP.inbound;
+      return FLIGHT_NOTE+'\n\ne-Ticket 확인 (verified · 시각은 각 공항 현지시간):\n'+out.date+' '+out.flight+' · 인천 T'+out.departure_terminal+' '+out.departure+' → 싱가포르 '+out.arrival+' (도착 터미널 미기재) · '+out.duration+' · '+out.aircraft+'\n'+back.date+' '+back.flight+' · 싱가포르 T'+back.departure_terminal+' '+back.departure+' → 인천 T'+back.arrival_terminal+' '+back.arrival+' · '+back.duration+' · '+back.aircraft+'\n'+(p?p.name+' · '+p.cabin+' · 출국 '+p.out+' / 귀국 '+p.back+' · '+p.baggage:people.map(p=>p.name+' · 출국 '+p.out+' / 귀국 '+p.back+' · '+p.cabin+' · '+p.baggage).join('\n'))+'\n기존 일정은 귀국일 05:30 호텔 출발·06:00 공항 도착을 제안합니다. 이 이동 계획과 소요시간은 항공권 확인 데이터가 아닙니다. 실제 수속 마감은 항공사에서 확인하세요.';
     }
     if(/오늘|내일/.test(q)&&!/출발|호텔|누구|어떻게/.test(q)){
       const date=/내일/.test(q)?localDate(new Date(now.getTime()+86400000)):t.today;
@@ -3779,17 +3794,34 @@ const FieldAssistant = (() => {
         it.verification_status='unverified';it.map_pin_usage='reference_only';it.verification_note=KDCEA;
         it.warn=(it.warn?it.warn+'<br>':'')+'미확정 목적지 · 지도 PIN/경로는 참고용 · 전용버스 단체 이동';
       }
-      if(dateOf(d)==='2026-10-02'&&/창이|SIN→ICN/.test(it.title)){
-        it.verification_status='unverified';it.map_pin_usage='reference_only';it.verification_note=FLIGHT_NOTE;
-        it.warn=(it.warn?it.warn+'<br>':'')+FLIGHT_NOTE;
-      }
-      if((it.secs||[]).some(v=>/23kg|30kg|SQ606/.test(v.b))&&!it.verification_note){it.verification_status='unverified';it.verification_note=FLIGHT_NOTE;}
       if(/장소.{0,10}협의|장소 미정/.test((it.loc||'')+' '+(it.secs||[]).map(s=>clean(s.b)).join(' '))){
         it.verification_status='unverified';it.map_pin_usage='reference_only';it.verification_note='행사 장소 미확정 · 기존 지도 PIN은 참고용입니다. 주최 측 확정 안내 확인 필요.';
         it.warn=(it.warn?it.warn+'<br>':'')+it.verification_note;
       }
     }));
-    ['bus_mbs_jb','bus_jb_hotel','d4_airport'].forEach(key=>TR[key].forEach(tr=>{tr.verification_status='unverified';tr.map_pin_usage='reference_only';tr.body=(key==='d4_airport'?FLIGHT_NOTE:KDCEA)+'\n참고 경로: '+tr.body;}));
+    ['bus_mbs_jb','bus_jb_hotel'].forEach(key=>TR[key].forEach(tr=>{tr.verification_status='unverified';tr.map_pin_usage='reference_only';tr.body=KDCEA+'\n참고 경로: '+tr.body;}));
+  }
+  function applyVerifiedFlights(){
+    DAYS.forEach(d=>(d.items||[]).forEach(it=>{
+      const date=dateOf(d);
+      if(date==='2026-09-27'&&/ICN→SIN|창이공항 도착/.test(it.title)){
+        it.flight_leg='outbound';it.flight_event=/ICN→SIN/.test(it.title)?'departure':'arrival';
+        it.terminal=it.flight_event==='departure'?'1':null;
+        it.map_pin_usage='reference_only';it.verification_status='unverified';
+        it.verification_note='도착 터미널은 e-Ticket 공란입니다. 기존 지도 좌표는 공항 참고 위치이며 실제 도착 터미널/픽업존을 뜻하지 않습니다.';
+        it.warn=it.verification_note;
+      }
+      if(date==='2026-10-02'&&/창이|SIN→ICN/.test(it.title)){
+        it.terminal='2';it.destination_query='Singapore Changi Airport Terminal 2 Departure Hall';
+        // Existing coordinates were for T3. The ticket verifies a terminal name, not coordinates.
+        if(!/호텔 출발/.test(it.title)){it.lat=null;it.lng=null;}
+      }
+      if(date==='2026-10-02'&&/SIN→ICN|인천공항 T1 도착/.test(it.title)){
+        it.flight_leg='inbound';it.flight_event=/SIN→ICN/.test(it.title)?'departure':'arrival';it.terminal=it.flight_event==='departure'?'2':'1';
+      }
+    }));
+    TR.d4_airport.forEach(tr=>{tr.to=null;tr.destination_query='Singapore Changi Airport Terminal 2 Departure Hall';tr.destination_metadata={...AIR_TRIP.metadata};});
+    TR.d0_arrive.forEach(tr=>{tr.from=null;tr.origin_metadata=AIR_TRIP.outbound.arrival_terminal_metadata;tr.body='도착 터미널 미기재 · 픽업/승차 위치는 현장 확인.\n'+tr.body;});
   }
   function add(tag,parent,text,cls){const el=document.createElement(tag);if(text)el.textContent=text;if(cls)el.className=cls;if(parent)parent.appendChild(el);return el;}
   function button(parent,text,fn){const el=add('button',parent,text);el.type='button';el.onclick=fn;return el;}
@@ -3809,7 +3841,7 @@ const FieldAssistant = (() => {
       result('등록된 출장 자료에서 답변을 찾고 있습니다…');
       const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
       try{
-        const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({mode:'assistant',question:q,context:JSON.stringify({now:new Date().toISOString(),selected:s,selected_day:s?listFor(s.WHEN.date):[],constraints:[KDCEA,FLIGHT_NOTE]})})});
+        const response=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({mode:'assistant',question:q,context:JSON.stringify({now:new Date().toISOString(),flights:AIR_TRIP,selected:s,selected_day:s?listFor(s.WHEN.date):[],constraints:[KDCEA,FLIGHT_NOTE]})})});
         if(!response.ok)throw new Error('unavailable');const data=await response.json();
         if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('empty');
         result('AI 답변 · 기존 자료 기반, 확정 안내와 대조하세요.\n'+data.answer+'\n\n미확정 안내: '+(s?.WHERE.map_pin_usage==='reference_only'?s.metadata.note:'등록되지 않은 정보는 확정할 수 없습니다.'));
@@ -3848,9 +3880,9 @@ const FieldAssistant = (() => {
     button(links,'기존 일정 보기',()=>{const s=lastTarget||target();if(s){switchDay(s.dayIndex);panel.close();}});
     button(links,'현재 위치 → 목적지',()=>{
       const s=lastTarget||target();
-      if(!s||s.WHERE.map_pin_usage==='reference_only'||s.WHERE.latitude===null||s.WHERE.longitude===null){result(s?.metadata.note||'목적지 위치가 등록되어 있지 않습니다.');return;}
+      if(!s||s.WHERE.map_pin_usage==='reference_only'||(!s.WHERE.place_name_en&&(s.WHERE.latitude===null||s.WHERE.longitude===null))){result(s?.metadata.note||'목적지 위치가 등록되어 있지 않습니다.');return;}
       result('기존 앱에 등록된 위치로 Google Maps를 엽니다. 현재 위치와 이동수단은 지도에서 확인하세요.');
-      window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(s.WHERE.latitude+','+s.WHERE.longitude),'_blank','noopener,noreferrer');
+      window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(s.WHERE.place_name_en||s.WHERE.latitude+','+s.WHERE.longitude),'_blank','noopener,noreferrer');
     });
     button(links,'당일 경로',()=>{const s=lastTarget||target();if(s){panel.close();switchDay(s.dayIndex);if(!DAYS[s.dayIndex].monday)openPreview(s.dayIndex);}});
     button(links,'AI 당일 시나리오',()=>{const s=lastTarget||target();if(s){if(DAYS[s.dayIndex].monday){result('월요일은 자유 탐방입니다. 기존 일정에서 코스를 선택해 확인하세요.');return;}panel.close();openSim(s.dayIndex);}});
@@ -3889,9 +3921,10 @@ const FieldAssistant = (() => {
     add('div',card,FLIGHT_NOTE,'fa-muted');
   }
   function open(){fillSelect();refresh();document.getElementById('fa-panel').showModal();}
+  applyVerifiedFlights();
   patchSafety();
   document.addEventListener('DOMContentLoaded',init);
-  return {schedules,timeline,answer,normalize,dateOf,stamp,checks,people,KDCEA,FLIGHT_NOTE,overview};
+  return {schedules,timeline,answer,normalize,dateOf,stamp,checks,people,flights:AIR_TRIP,KDCEA,FLIGHT_NOTE,overview};
 })();
 
 // ── PWA Service Worker — 웹 배포 시 오프라인 캐싱 ──────────────
